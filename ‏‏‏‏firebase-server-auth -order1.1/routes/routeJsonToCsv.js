@@ -11,8 +11,22 @@ router.post('/saveOneTravelToCsv', async function (req, res) {
     console.log(cameraId)
     console.log(travelId)
 
+    // JsonToCsv.saveOneTravelToCsv(cameraId, travelId)
+    //     .then(response => res.send(response));
+
     JsonToCsv.saveOneTravelToCsv(cameraId, travelId)
-        .then(response => res.send(response));
+        .then((response) => {
+            res.download(process.cwd() + "/" + response, function (err) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    JsonToCsv.deleteFile(false, cameraId, travelId);
+                }
+            });
+        });
+
+
 });
 
 
@@ -23,8 +37,23 @@ router.post('/saveALLTravelToCsv', async function (req, res) {
     console.log("cameraId: ", cameraId);
     console.log("travelArrId: ", travelArrId);
 
+    // JsonToCsv.saveALLTravelToCsv(cameraId, travelArrId)
+    //     .then(response => res.send(response));
+
+
+
+
     JsonToCsv.saveALLTravelToCsv(cameraId, travelArrId)
-        .then(response => res.send(response));
+        .then((response) => {
+            res.download(process.cwd() + "/" + response, function (err) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    JsonToCsv.deleteFile(true, cameraId, travelArrId);
+                }
+            });
+        });
 });
 
 module.exports = router

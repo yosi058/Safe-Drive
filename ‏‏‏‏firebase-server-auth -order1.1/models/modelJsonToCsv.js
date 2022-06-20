@@ -1,63 +1,74 @@
 const JSONToCsv = require("json2csv").parse;
+const { info } = require("console");
+const { name } = require("ejs");
 const FileSystem = require("fs");
 const DbServer = require('./modelDbServer');
 const parserDB = require('./modelParserDB');
 
-// var source = {"ori": "1", "ori1": "4", "ori2":"5"}
 
-// const csv = JSONToCsv(source,{fields:["ori","ori1","ori2"]});
-// FileSystem.writeFileSync("./testcsv.csv",csv);
-
+//The function exports to the file the data on a specific travel
 async function saveOneTravelToCsv(camera, id) {
-    info = await DbServer.getTravels(camera, id);
+    var mapStatus = { 1: "distractions", 0: "fell asleep", 2: "Tiredness indications" }
+
+    var info = await DbServer.getTravels(camera, id);
+
+    info.forEach((item) => {
+        item.status = mapStatus[item.status];
+    });
+
     const csv = JSONToCsv(info, { fields: ["time", "status", "massege", "locations"] });
-    FileSystem.writeFileSync(`./${camera}Travel${id}.csv`, csv);
-    return true;
+    var name = `${camera}Travel${id}.csv`
+    FileSystem.writeFileSync("./" + name, csv);
+    return name;
 }
 
+//The function exports to the file the data on all travel in the camera
 async function saveALLTravelToCsv(camera, idArr) {
-    console.log("in saveALLTravelToCsv" );
+    console.log("in saveALLTravelToCsv");
     var info = await parserDB.numberOfEventsInSumOfTravelsToCsv(camera, idArr);
-    // console.log("info in csv", info)
-    const csv = JSONToCsv(info, { fields: ["sleep", "phone", "yawning", "locations", "timeOfTravel"] });
+    const csv = JSONToCsv(info, { fields: ["fell_asleep", "distractions", "Tiredness_indications", "locations", "timeOfTravel"] });
     try {
-        FileSystem.writeFileSync(`./${camera}allTravelS.csv`, csv);
+        var name = `${camera}allTravelS.csv`
+        FileSystem.writeFileSync("./" + name, csv);
     } catch (err) {
         console.log("error!: ", err.message);
-
     }
-    return true;
+    return name;
 }
+
+//The function deletes files from the server (the Boolean variable announces what the file was called)
 async function deleteFile(isAll, camera, id) {
     let fileMame = null;
     if (isAll) {
-        fileMame = `./${camera}Travel${id}.csv`;
+        fileMame = `./${camera}allTravelS.csv`;
     }
     else {
-        fileMame = `./${camera}allTravelS.csv`;
+        fileMame = `./${camera}Travel${id}.csv`;
     }
     FileSystem.unlink(fileMame, (err) => {
         if (err) {
             console.log("error in deleteFile: ", err);
         }
         else {
-            console.log("File is deleted.");
+            console.log(fileMame, "File is deleted.");
         }
     });
     return true;
 }
 
+
+//test
 async function main() {
-    // saveOneTravelToCsv("camera_7", 3);
+    saveOneTravelToCsv("camera_7", 3);
     // saveALLTravelToCsv("camera_7", [1,2,3,4])
-    deleteFile(true, "camera_7", 3);
-    deleteFile(false, "camera_7", 3);
+    //deleteFile(true, "camera_7", 3);
+    // deleteFile(false, "camera_7", 3);
 
 
 }
 
 
-// main();
+//main();
 
 
 module.exports = {

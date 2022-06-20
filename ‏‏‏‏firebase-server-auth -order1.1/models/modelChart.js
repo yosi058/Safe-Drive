@@ -1,6 +1,7 @@
 const parserDB = require('./modelParserDB');
 
-async function viewOnOneTravel(camera, id) {
+async function viewOnOneTravel(camera, info) {
+    var id = info.numberOfTravel;
     // let response = await DbServer.getTravels(camera, id)
     // console.log(response);
     console.log("camera ", camera)
@@ -12,10 +13,20 @@ async function viewOnOneTravel(camera, id) {
     console.log("ret[1]:" + ret[1])
     console.log("ret[2]:" + ret[2])
 
+    var text ="";
+    if((ret[0] != 0 || ret[0] != 0||ret[0] != 0)){
+    text = "All events that occurred while traveling in the 'pie' graph"
+    }
+    else{
+        text = "splendid! There were no events on this travel!"
+    }
+
+
     return myJson = {
+
         type: 'pie', // bar, horizontalBar, pie, line, doughnut, radar, polarArea
         data: {
-            labels: ['eyes closing', 'phone', 'Yawns'],
+            labels: ['fell asleep', 'distractions', 'Tiredness indications'],
             datasets: [{
                 label: 'Population',
                 data: [
@@ -33,31 +44,33 @@ async function viewOnOneTravel(camera, id) {
                 hoverBorderWidth: 3,
                 hoverBorderColor: '#000'
             }]
+          
         },
         options: {
+            plugins: {
             title: {
                 display: true,
-                text: 'drive events',
-                fontSize: 25
-            },
-            legend: {
-                display: true,
-                position: 'right',
-                labels: {
-                    fontColor: '#000'
-                }
-            },
-            layout: {
+                text: text,
+                font: {
+                    size: 25
+                },
                 padding: {
-                    left: 50,
-                    right: 0,
-                    bottom: 0,
-                    top: 0
+                    top: 10,
+                    bottom: 10,
                 }
             },
-            tooltips: {
-                enabled: true
+            subtitle: {
+                display: true,
+                text: 'The travel start at '+ info.time + '  in "'+ info.locations +'"',
+                font: {
+                    size: 20
+                },
+                padding: {
+                    top: 10,
+                    bottom: 10,
+                }
             }
+        },
         }
     }
 }
@@ -70,6 +83,12 @@ async function viewOnAmountTravels(camera, arrId) {
     let yellow = [];
     let orange = [];
     let black = [];
+    labels = []
+
+    arrId.forEach(element => {
+       labels.push("travel: " + element)
+    });
+    
 
     ret.forEach(element => {
         red.push('#8b0000');
@@ -85,21 +104,21 @@ async function viewOnAmountTravels(camera, arrId) {
     return myChart = {
         type: 'bar',
         data: {
-            labels: arrId,
+            labels: labels,
             datasets: [{
-                label: 'Yawning',
+                label: 'Tiredness indications',
                 data: ret[2],
                 backgroundColor: yellow,
                 borderColor: black,
                 borderWidth: 1
             }, {
-                label: 'phone',
+                label: 'distractions',
                 data: ret[1],
                 backgroundColor: orange,
                 borderColor: black,
                 borderWidth: 1
             }, {
-                label: 'eyes closing',
+                label: 'fell asleep',
                 data: ret[0],
                 backgroundColor: red,
                 borderColor: black,
@@ -115,6 +134,22 @@ async function viewOnAmountTravels(camera, arrId) {
                 // xAxes: [{
                 //     stacked: true
                 // }]
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Travel comparison in ' + camera,
+                    font: {
+                        size: 25
+                    },
+                    padding: {
+                        top: 50,
+                        bottom: 50,
+                        font: {
+                            size: 50
+                        }
+                    }
+                }
             }
         }
     };
@@ -135,27 +170,28 @@ async function chartTravelsOnTimes(camera, Id) {
 
     const data = {
         datasets: [{
-            label: 'eyes',
+            label: 'fell asleep ',
             data: dataPointsPhone,
             backgroundColor: colorEye,
             borderColor: colorEye,
             showLine: false
 
         }, {
-            label: 'phone',
+            label: 'distractions',
             data: dataPointsEye,
             backgroundColor: colorPhone,
             borderColor: colorPhone,
             showLine: false
         }, {
-            label: 'yawning',
+            label: 'Tiredness indications',
             data: dataPointsyawning,
             backgroundColor: coloryawning,
             borderColor: coloryawning,
             showLine: false
         }
         ]
-    };
+    }
+    ;
     var ret = { "data": data };
     return ret;
 }

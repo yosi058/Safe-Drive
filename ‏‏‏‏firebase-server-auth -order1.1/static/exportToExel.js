@@ -1,7 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+
     async function drawAllCamerasButton() {
-        // drawSpiner("buttonContainer")
+        clearcCntainer("mainContainer");
+        clearcCntainer("chartContainer");
+        drawSpiner();
 
         try {
             var camerasArr = await postRequestToServer("/dbServer/getCamerasOfUser");
@@ -10,10 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(err.message);
             return;
         }
-        var container = document.getElementById('buttonContainer');
+        var container = document.getElementById('mainContainer');
 
-        clearcCntainer("container");
-        clearcCntainer("buttonContainer");
+        deletSpiner();
 
 
         camerasArr.forEach((camera) => {
@@ -32,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createCameraCard(camreId) {
         var div = document.createElement('div');
-        div.className = "card text-white bg-secondary mb-3"
+        div.className = "card text-white bg-dark mb-3"
         div.style = "width: 18rem;"
         div.id = camreId
 
@@ -75,14 +77,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("exportToExel").addEventListener("click", drawAllCamerasButton);
 
     async function drawAllTittleTravelsButton(camera) {
-        clearcCntainer("buttonContainer");
-        var container = document.getElementById("buttonContainer");
+        clearcCntainer("mainContainer");
+        clearcCntainer("chartContainer");
+        drawSpiner();
+
+        var container = document.getElementById("mainContainer");
 
 
 
         console.log(camera)
         try {
             var tittleTravelsArr = await postRequestToServer("/dbServer/getTittleTravels", JSON.stringify({ cameraId: camera }));
+            // tittleTravelsArr = tittleTravelsArr.reverse();
             console.log(tittleTravelsArr);
 
         } catch (err) {
@@ -100,30 +106,60 @@ document.addEventListener("DOMContentLoaded", () => {
         var travelIdArr = []
         var buttonsArr = []
 
-        var form = document.createElement('form');
-        form.className = "form-group"
+        var scrollDiv = document.createElement('div');
+        scrollDiv.setAttribute("class", "overflow-auto p-3 mb-3 mb-md-0 me-md-3 bg-light")
+        scrollDiv.setAttribute("style", "max-height: 500px;")
+        // var scrollDiv = document.createElement('form');
+        // scrollDiv.className = "form-group"
 
         tittleTravelsArr.forEach((tittleTravel) => {
             console.log(tittleTravel)
             console.log(tittleTravel["numberOfTravel"])
             var travelId = tittleTravel["numberOfTravel"]
+            var travelTime = tittleTravel["time"];
             travelIdArr.push(travelId)
 
             var button = document.createElement('input');
             button.type = 'button';
             button.id = 'submit';
-            button.value = "show travel " + travelId;
+            button.value = "travel: " + travelTime;
             // button.className = 'btn';
             button.className = "btn btn-outline-success dropdown-toggle";
 
             button.onclick = (async function () {
+                drawSpiner();
                 console.log(camera)
                 try {
                     // var travelsArr = await postRequestToServer("/dbServer/getTravels", JSON.stringify({ cameraId: camera, travelId: travelId }));
-                    var travelsArr = await postRequestToServer("/jsonToCsv/saveOneTravelToCsv", JSON.stringify({ cameraId: camera, travelId: travelId }));
-                    
-                    console.log(travelsArr);
-                    
+                    // var travelsArr = await postRequestToServer("/jsonToCsv/saveOneTravelToCsv", JSON.stringify({ cameraId: camera, travelId: travelId }));
+                    var body = JSON.stringify({ cameraId: camera, travelId: travelId });
+                    var fileName = `${camera}Travel${travelId}`
+                    var res = await downloadPostRequest("/jsonToCsv/saveOneTravelToCsv", body, fileName);
+
+
+                    // fetch("/jsonToCsv/saveOneTravelToCsv", {
+                    //     method: "POST",
+                    //     headers: {
+                    //         Accept: "application/json",
+                    //         "Content-Type": "application/json",
+                    //         "CSRF-Token": Cookies.get("XSRF-TOKEN"),
+                    //     },
+                    //     body: body,
+                    // })
+                    //     .then((res) => {
+                    //         console.log(res)
+                    //         return res.blob();
+                    //     })
+                    //     .then((data) => {
+                    //         var a = document.createElement("a");
+                    //         a.href = window.URL.createObjectURL(data);
+                    //         console.log(data)
+                    //         a.download = `${camera}Travel${travelId}`;
+                    //         a.click();
+                    //     });
+
+                    // console.log(travelsArr);
+
 
 
                 } catch (err) {
@@ -131,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
 
                 }
+                deletSpiner();
             });
             var checkbox = document.createElement('INPUT');
             checkbox.setAttribute("type", "checkbox");
@@ -146,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
             var div = document.createElement('div');
             div.appendChild(checkbox);
             div.appendChild(button);
-            form.appendChild(div);
+            scrollDiv.appendChild(div);
             buttonsArr.push(button);
 
 
@@ -166,7 +203,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         });
-        container.appendChild(form);
+        deletSpiner();
+        var div = document.createElement("div")
+        div.setAttribute("class", "overflow-auto")
+        div.appendChild(scrollDiv);
+        container.appendChild(div)
 
 
         var sbmitCheckbox = document.createElement('input');
@@ -175,8 +216,9 @@ document.addEventListener("DOMContentLoaded", () => {
         sbmitCheckbox.id = "sbmitCheckbox";
         sbmitCheckbox.value = "Compare all travels";
         sbmitCheckbox.addEventListener("click", async (event) => {
-            let checkboxes = document.querySelectorAll('input[name="checkboxTravels"]');
-            let values = [];
+            drawSpiner();
+            var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]');
+            var values = [];
             console.log("values", values)
             checkboxes.forEach((checkbox) => {
                 values.push(checkbox.value);
@@ -187,8 +229,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             var cameraId = camera;
             var travelArrId = values;
-            // await drawCompareMarkedTravels(cameraId, traveslId);
-            var res = await postRequestToServer("/jsonToCsv/saveAllTravelToCsv", JSON.stringify({ cameraId: cameraId, travelArrId: travelArrId }));
+
+            var body = JSON.stringify({ cameraId: camera, travelArrId: travelArrId });
+            var fileName = `${camera}allTravelS`;
+            var res = await downloadPostRequest("/jsonToCsv/saveAllTravelToCsv", body, fileName);
+
+            deletSpiner();
         })
 
 
@@ -203,8 +249,9 @@ document.addEventListener("DOMContentLoaded", () => {
         sbmitCheckbox.id = "sbmitCheckbox";
         sbmitCheckbox.value = "Compare marked travels";
         sbmitCheckbox.addEventListener("click", async (event) => {
-            let checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
-            let values = [];
+            drawSpiner();
+            var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
+            var values = [];
             console.log("values", values)
             checkboxes.forEach((checkbox) => {
                 values.push(checkbox.value);
@@ -217,7 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
             var cameraId = camera;
             var travelArrId = values;
             // await drawCompareMarkedTravels(cameraId, traveslId);
-            var res = await postRequestToServer("/jsonToCsv/saveAllTravelToCsv", JSON.stringify({ cameraId: cameraId, travelArrId: travelArrId }));
+            // var res = await postRequestToServer("/jsonToCsv/saveAllTravelToCsv", JSON.stringify({ cameraId: cameraId, travelArrId: travelArrId }));
+            var body = JSON.stringify({ cameraId: camera, travelArrId: travelArrId });
+            var fileName = `${camera}allTravelS`;
+            var res = await downloadPostRequest("/jsonToCsv/saveAllTravelToCsv", body, fileName);
+            deletSpiner();
         })
 
         var div = document.createElement('div');
@@ -272,29 +323,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    function postRequestToServer(path, body = "") {
+    // function postRequestToServer(path, body = "") {
 
-        return new Promise((resolve, reject) => {
-            fetch(path, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                    "CSRF-Token": Cookies.get("XSRF-TOKEN"),
-                },
-                body: body,
-            }).then(response => response.json())
+    //     return new Promise((resolve, reject) => {
+    //         fetch(path, {
+    //             method: "POST",
+    //             headers: {
+    //                 Accept: "application/json",
+    //                 "Content-Type": "application/json",
+    //                 "CSRF-Token": Cookies.get("XSRF-TOKEN"),
+    //             },
+    //             body: body,
+    //         }).then(response => response.json())
 
-                .then(json => {
-                    console.log("in postRequestToServer");
-                    resolve(json);
-                })
-                .catch(err => {
-                    console.log(err.message)
-                    reject(err)
-                });
-        })
-    }
+    //             .then(json => {
+    //                 console.log("in postRequestToServer");
+    //                 resolve(json);
+    //             })
+    //             .catch(err => {
+    //                 console.log(err.message)
+    //                 reject(err)
+    //             });
+    //     })
+    // }
 
     ////////////////////////////////////////////////////////////////////////////////////
 

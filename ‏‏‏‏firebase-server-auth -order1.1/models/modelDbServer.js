@@ -12,7 +12,8 @@ const schema = mongoose.Schema
 const travelsScema = new schema({
     _id: Number,
     time: String,
-    numberOfTravel: Number
+    numberOfTravel: Number,
+    locations: String
 })
 
 const travelsDataScema = new schema({
@@ -34,13 +35,14 @@ const cameraConf = new schema({
     phone: Number,
     yawning: Number,
     yawningAlert: Boolean,
-    pass: String
+    pass: String,
+    mail: String
 })
 /////////////////////////////////////
 
 //The function creates a connection to the DB
 async function connectToDb(dbName) {
-
+//Save  in cache
     if (cache[dbName] == undefined) {
         let DatabaseTravelsInfoURL = 'mongodb+srv://any:1111@safe.bgpte.mongodb.net/' + dbName + '?retryWrites=true&w=majority'
         cache[dbName] = await mongoose.createConnection(DatabaseTravelsInfoURL, {
@@ -57,7 +59,7 @@ async function connectToDb(dbName) {
     return cache[dbName];
 }
 
-//The function returns the travel names that made by the user
+//The function returns data on travel
 async function getTittleTravels(userName) {
     let travelsResults = []
     if (travelsConn == null) {
@@ -69,7 +71,8 @@ async function getTittleTravels(userName) {
             result.forEach((item) => {
                 var time = item["time"]
                 var numberOfTravel = item["numberOfTravel"]
-                travelsResults.push({ time, numberOfTravel })
+                var locations = item["locations"]
+                travelsResults.push({ time, numberOfTravel, locations })
             });
         })
 
@@ -96,6 +99,7 @@ async function getTravels(dbName, id, connInfoTravels = null) {
     return info
 }
 
+//The function saves a new user in DB
 async function signUp(mail, camerasArr = []) {
     let user;
     if (userConn == null) {
@@ -109,12 +113,8 @@ async function signUp(mail, camerasArr = []) {
     newUser.save()
 }
 
-async function setConf(camera, eyes, phone, yawning, yawningAlert) {
-    // if((typeof eyes != 'number' && eyes != null)||(typeof phone != 'number' && phone != null) || (typeof yawning != 'number' && yawning != null) || (typeof yawningAlert != 'boolean' && yawningAlert != null) )
-    // {
-    //     return "The value is not valid! please enter number to: eyes, phone, yawning and true/false to yawningAlert";
-    // }
-
+//The function changes the configurations of a specific camera
+async function setConf(camera, eyes, phone, yawning, yawningAlert, mail = null) {
     let camereConn = await connectToDb(camera);
     let confi = await camereConn.model('Configurations', cameraConf);
 
@@ -159,8 +159,19 @@ async function setConf(camera, eyes, phone, yawning, yawningAlert) {
             }
         });
     }
+    if (mail != null) {
+        confi.findOneAndUpdate({ _id: camera }, { mail: mail }, { upsert: true }, function (err, doc) {
+            if (err) {
+                console.log("error", err)
+            }
+            else {
+                console.log("work")
+            }
+        });
+    }
 }
 
+//The function changes the configurations of an array of cameras
 async function setConfOfArrCamera(camerasArr, eyes, phone, yawning, yawningAlert) {
     console.log(camerasArr)
     camerasArr.forEach((camera) => {
@@ -169,13 +180,14 @@ async function setConfOfArrCamera(camerasArr, eyes, phone, yawning, yawningAlert
     return true;
 }
 
+//The function adds a camera to the user that he can watch
 async function updateCamera(mail, camera, pass) {
+    let user;
+
     if (!await checkPass(camera, pass)) {
         return false;
     }
-
-
-    let user;
+    
     if (userConn == null) {
         userConn = await connectToDb("users")
     }
@@ -192,6 +204,7 @@ async function updateCamera(mail, camera, pass) {
     return true;
 }
 
+//The function removes a camera from the list of cameras that a user can view
 async function deleteCamera(mail, camerasArr) {
     let user;
     if (userConn == null) {
@@ -210,9 +223,11 @@ async function deleteCamera(mail, camerasArr) {
     return true;
 }
 
+//The function returns all the cameras that the user has permission to view
 async function getCamerasOfUser(mail) {
     let info = []
     let user;
+
     if (userConn == null) {
         userConn = await connectToDb("users")
     }
@@ -220,9 +235,6 @@ async function getCamerasOfUser(mail) {
         user = await userConn.model('User', userSchema)
     }
     catch (error) {
-        console.log("////////////////")
-        console.log("check the init function")
-        console.log("////////////////")
         console.log(error)
         return
     }
@@ -236,25 +248,31 @@ async function getCamerasOfUser(mail) {
     return info
 }
 
-async function getAllDataOnCamera(nameOfCamera, travelsName = null) {
+//The function returns travel data from the camera
+async function getAllDataOnCamera(nameOfCamera, arrTravelsId = null) {
+    console.log("in getAllDataOnCamera ")
 
+    //Create an array with all the existing travel numbers on the camera
     let travelsData = []
-    if (travelsName == null) {
-        let travelsName = [];
-        let travels = await getTittleTravels(nameOfCamera);
-        travels.forEach((item) => {
-            travelsName.push(item["numberOfTravel"])
+    if (arrTravelsId == null) {
+        arrTravelsId = [];
+        var travels = await getTittleTravels(nameOfCamera).then((trav) => {
+            trav.forEach((item) => {
+                arrTravelsId.push(item["numberOfTravel"])
+            });
         });
     }
 
-    let connInfoTravels = await connectToDb(nameOfCamera)
-    for (travel of travelsName) {
+    //save the data
+    let connInfoTravels = await connectToDb(nameOfCamera);
+    for (travel of arrTravelsId) {
         travelsData.push(await getTravels(nameOfCamera, travel, connInfoTravels))
     }
-    console.log("in getAllDataOnCamera ")
-    // console.log(travelsData)
+
+
     return travelsData;
 }
+
 
 async function getAllDataOnAmountOfCameras(nameOfCameraArr) {
     let camerasInfo = []
@@ -264,11 +282,14 @@ async function getAllDataOnAmountOfCameras(nameOfCameraArr) {
     return camerasInfo;
 }
 
+//The function initializes and saves all the necessary connections in each access to the site
 async function init() {
     travelsConn = await connectToDb("travels")
     userConn = await connectToDb("users")
 
 }
+
+//The function returns the current configurations in the camera
 async function getConf(camera) {
     let info = {};
     let connect = await connectToDb(camera);
@@ -277,15 +298,17 @@ async function getConf(camera) {
     let confInfo = await conf.find()
         .then((item) => {
             item = item[0];
-            console.log("in getConf: conf: ", item)
             info.phone = item.phone;
             info.eyes = item["eyes"];
             info.yawning = item["yawning"];
             info.yawningAlert = item["yawningAlert"];
+            info.mail = item["mail"]
         })
     return info
 }
 
+//Function for internal use:
+//The function checks if the password is correct for the camera
 async function checkPass(camera, pass) {
     let connect = await connectToDb(camera);
     let isCorrect = false;
@@ -305,8 +328,37 @@ async function checkPass(camera, pass) {
     return isCorrect;
 }
 
+//The function returns the email associated with the camera
+async function getMail(camera) {
+    let mail = "";
+    let connect = await connectToDb(camera);
+
+    let conf = await connect.model('configurations', cameraConf)
+    let confInfo = await conf.find()
+        .then((item) => {
+            item = item[0];
+            mail = item.mail;
+        })
+    return mail;
+}
+
+//The function changes the email associated with the camera
+async function setMail(camera, mail) {
+    let camereConn = await connectToDb(camera);
+    let confi = await camereConn.model('Configurations', cameraConf);
+
+    confi.findOneAndUpdate({ _id: camera }, { mail: mail }, { upsert: true }, function (err, doc) {
+        if (err) {
+            console.log("error", err)
+        }
+        else {
+            console.log("work")
+        }
+    });
+}
 
 
+//Function for tests
 async function main() {
     //console.log("/////////////////////////id: 1///////////////////////")
     //console.log(await getTittleTravels("camera_1"))
@@ -324,23 +376,28 @@ async function main() {
     //console.log(await getCamerasOfUser("ori123@gmail"))
 
     //console.log("/////////////////////////id: 6///////////////////////")
-    //console.log( await getAllDataOnCamera("camera_4"))
+    //console.log(await getAllDataOnCamera("camera_7", [1, 2, 3, 4, 5]))
 
     //console.log("/////////////////////////id: 7///////////////////////")
     //console.log( await getAllDataOnAmountOfCameras(["camera_4","camera_3"]))
 
     //console.log("/////////////////////////id: 8///////////////////////")
     //deleteCamera("ori123@gmail",["camera_23","camera_24"] )
-    updateCamera("ori123@gmail", "camera_1", "123")
+    //updateCamera("ori123@gmail", "camera_1", "123")
     //init()
     //console.log(await getCamerasOfUser("ori123@gmail"))
-    //console.log(setConf("camera_1",null ,1 ,1 , false))
+
+
+    //console.log(await setConf("camera_"+ i,null ,null ,null , null, "ori.kohen123@gmail.com"))
+
 
     //console.log( await getConf("camera_1"))
 
     //SetConfOfArrCamera(["camera_4","camera_3"], 2,2,2, true)
+    //console.log( await getMail("camera_9"))
+    await setMail("camera_3", "test@test")
 }
-// main();
+//main();
 
 module.exports = {
     getTittleTravels,
@@ -354,4 +411,5 @@ module.exports = {
     setConf,
     getConf,
     setConfOfArrCamera,
+    getMail
 }

@@ -9,10 +9,10 @@ const chartModel = require('../models/modelChart');
 router.post('/numberOfEventsInDrive', async function (req, res, next) {
   console.log("in server: numberOfEventsInDrive")
   console.log("cameraId",req.body.cameraId)
-  console.log("travelId",req.body.travelId)
+  console.log("travelId",req.body.infoTravel)
   // let response = await chartModel.viewOnOneTravel(req.body['camera'], req.body['id'])
   // chartModel.viewOnOneTravel(req.body['cameraId'], req.body['travelId']).then(response => {
-  chartModel.viewOnOneTravel(req.body.cameraId, req.body.travelId).then(response => {
+  chartModel.viewOnOneTravel(req.body.cameraId, req.body.infoTravel).then(response => {
     // console.log(response)
     res.send(response)
   })

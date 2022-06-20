@@ -4,13 +4,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firebase Server Auth</title>
+  
+  <title>Drive Safe signup</title>
+  <link rel="icon" href="car_logo.png" type="image/x-icon">
+
   <link rel="stylesheet" href="./mvp.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-</head>
+
+    <style>
+      .logo {
+         filter: brightness(200%);
+      }
+      </style>
+  </head>
 
 <body>
+  <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
+      <img src="car_logo.png" class="logo" id="logo" alt="Italian Trulli" width="70" height="70">
+      Drive Safe</a>
+    <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+    
+  </nav>
   <main>
 
     <!-- Section: Design Block -->
@@ -36,21 +52,7 @@
               <div class="card">
                 <div class="card-body py-5 px-md-5">
                   <form id="signup2">
-                    <!-- 2 column grid layout with text inputs for the first and last names -->
-                    <div class="row">
-                      <div class="col-md-6 mb-4">
-                        <div class="form-outline">
-                          <input type="text" id="form3Example1" class="form-control" />
-                          <label class="form-label" for="form3Example1">First name</label>
-                        </div>
-                      </div>
-                      <div class="col-md-6 mb-4">
-                        <div class="form-outline">
-                          <input type="text" id="form3Example2" class="form-control" />
-                          <label class="form-label" for="form3Example2">Last name</label>
-                        </div>
-                      </div>
-                    </div>
+                    
 
                     <!-- Email input -->
                     <div class="form-outline mb-4">

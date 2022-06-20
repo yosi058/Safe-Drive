@@ -13,18 +13,82 @@
 </head>
 
 <body>
+  <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px;">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+      <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+      <span class="fs-4">Sidebar</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li class="nav-item">
+        <a href="#" class="nav-link active" aria-current="page">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="#home"/></svg>
+          Home
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="#speedometer2"/></svg>
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="#table"/></svg>
+          Orders
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="#grid"/></svg>
+          Products
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle"/></svg>
+          Customers
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+      <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+        <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+        <strong>mdo</strong>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+        <li><a class="dropdown-item" href="#">New project...</a></li>
+        <li><a class="dropdown-item" href="#">Settings</a></li>
+        <li><a class="dropdown-item" href="#">Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#">Sign out</a></li>
+      </ul>
+    </div>
+  </div>
+ 
 
   <h1 id="name">Hi </h1>
   <main>
+  
+
     <h1>{ name }</h1>
     <p>This page is private</p>
-    <a href="/sessionLogout">Log out</a>
+    <!-- <a id="myHref" href="/sendEmail?val=1234">sendEmail</a> -->
+    <a id="myHref" href=#>sendEmail</a>
     <a href="/dashboard">dashboard</a>
+
+
   </main>
 
-  <button id="clickMe" >Click me</button>
+  <button id="clickMe">Click me</button>
 
   <button type="button" class="btn btn-outline-success">Success</button>
+
+  <script>
+    var myHref = document.getElementById("myHref");
+    myHref.setAttribute("href","/sendEmail?val=1234")
+  </script>
 
   <!-- <h3 id="demo" onclick="myFunction()">Click me to change my color.</h3> -->
 
@@ -91,6 +155,14 @@
       })
     }
   </script> -->
+  <iframe src="sendEmail" height="400" width="400" title="Iframe Example"></iframe>
+  <div>
+    <h3>Download Section</h3> <br>
+    <!-- action to the /download route-->
+    <form action="/download" method="get">
+      <button type="submit">Download</button>
+    </form>
+  </div>
 </body>
 
 </html>
