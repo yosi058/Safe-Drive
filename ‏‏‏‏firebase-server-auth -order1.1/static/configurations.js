@@ -4,10 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const defaultYawning = 50;
     const defaultYawningAlert = true;
 
-
+    var title = "Configurations";
+    var instructions = "Set up camera configurations, or set them all together"
     async function drawCamerasConfButton() {
+        changeSubTitleAndInstructions(title, instructions);
+
         clearcCntainer("mainContainer");
         clearcCntainer("chartContainer");
+        clearcCntainer("buttonContainer");
         drawSpiner();
 
         try {
@@ -20,27 +24,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-        var container = document.getElementById('mainContainer');
+        var mainContainer = document.getElementById('mainContainer');
 
-        var button = await createConfAllCameraCard(camerasArr);
+        var confAllCamerasCard = await createConfAllCamerasCard(camerasArr);
 
-        container.appendChild(button);
+        // mainContainer.appendChild(confAllCamerasCard);
+        safeAppendElementToContainer(confAllCamerasCard, mainContainer, title);
         deletSpiner();
 
-        try {
-            camerasArr.forEach(async (camera) => {
-                drawSpiner();
-                // var button = createConfCameraCard(camera)
-                // .then((response)=>{
-                //     container.appendChild(response);
-                // //   deletSpiner(); 
-                // })
+        // try {
+        camerasArr.forEach(async (camera) => {
+            drawSpiner();
 
-                var button = await createConfCameraCard(camera);
-                container.appendChild(button);
-                deletSpiner();
-            })
-        } catch { }
+            createConfCameraCard(camera)
+                .then((confCameraCard) => {
+                    // mainContainer.appendChild(confCameraCard);
+                    safeAppendElementToContainer(confCameraCard, mainContainer, title);
+                    deletSpiner();
+                })
+
+            // var button = await createConfCameraCard(camera);
+            // container.appendChild(button);
+            // deletSpiner();
+        })
+        // } catch { }
 
 
     }
@@ -48,27 +55,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function createConfCameraCard(camera) {
         // drawSpiner();
-        var div = document.createElement('div');
-        div.className = "card text-white bg-dark mb-3"
-        div.style = "width: 18rem;"
+        var confCameraCard = document.createElement('div');
+        confCameraCard.className = "card text-white bg-dark mb-3"
+        confCameraCard.style = "width: 18rem;"
+        confCameraCard.id = "confCameraCard" + camera;
 
         var cardHeader = document.createElement('div')
         cardHeader.className = "card-header"
         cardHeader.innerHTML = camera
 
-        div.appendChild(cardHeader)
+        confCameraCard.appendChild(cardHeader)
 
 
         var cardBody = document.createElement('div')
         cardBody.className = "card-body"
 
-        div.appendChild(cardBody);
+        confCameraCard.appendChild(cardBody);
 
 
         var form = await createConfCameraForm([camera]);
         cardBody.appendChild(form);
         // deletSpiner();
-        return div;
+        return confCameraCard;
 
     }
     async function createConfCameraForm(camerasArr) {
@@ -94,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             div.className = "form-group";
 
             var label = document.createElement('label');
+            label.className="pb-2 pt-1"
 
             if (camerasArr.length == 1) {
                 label.innerHTML = val + ". current: " + cameraConf[val];
@@ -109,8 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
             var input = document.createElement('input')
             input.id = val;
             input.placeholder = "Enter " + val;
-            input.className = "form-control rounded-pill";
-            input.style = "opacity:0.8;"
+            input.className = "form-control rounded-pill bg-dark text-light ";
+            input.style = "opacity:0.6;"
+            
+            // input.style = "opacity:0.8;"
             input.pattern = "([1-9][\.][0-9])|[1-9]|([1-9][0-9][\.][0-9])|[1-9][0-9]";
             input.required = true;
             // 
@@ -146,7 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
             input.type = "email"
             input.placeholder = "Enter " + "email";
             input.className = "form-control rounded-pill";
-            input.style = "opacity:0.8;"
+            input.className = "form-control rounded-pill bg-dark text-light";
+            input.style = "opacity:0.6;"
+            // input.style = "opacity:0.8;"
             // input.pattern = "([1-9][\.][0-9])|[1-9]|([1-9][0-9][\.][0-9])|[1-9][0-9]";
             input.required = true;
             // 
@@ -197,6 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
         button.className = "form-control"
         button.className = 'btn btn-primary';
         div.appendChild(button);
+        div.className = "pb-3 pt-1"
         form.appendChild(div);
 
 
@@ -266,23 +280,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    async function createConfAllCameraCard(camerasArr) {
-        var div = document.createElement('div');
-        div.className = "card text-white bg-dark mb-3"
-        div.style = "width: 18rem;"
+    async function createConfAllCamerasCard(camerasArr) {
+        var confAllCamerasCard = document.createElement('div');
+        confAllCamerasCard.className = "card text-white bg-dark mb-3"
+        confAllCamerasCard.style = "width: 18rem;"
+        confAllCamerasCard.id = "confAllCamerasCard"
 
         var cardHeader = document.createElement('div')
-        cardHeader.className = "card-header"
+        cardHeader.className = "card-header bg-danger"
         cardHeader.innerHTML = "Set configurations for all cameras"
 
-        div.appendChild(cardHeader)
+        confAllCamerasCard.appendChild(cardHeader)
 
 
 
         var cardBody = document.createElement('div')
         cardBody.className = "card-body"
 
-        div.appendChild(cardBody);
+        confAllCamerasCard.appendChild(cardBody);
 
 
         var form = await createConfCameraForm(camerasArr);
@@ -297,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         cardBody.appendChild(cardText);
-        return div;
+        return confAllCamerasCard;
 
     }
 

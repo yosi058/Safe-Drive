@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("editCameras").addEventListener("click", drawCamerasEditButton);
-})
-
+    var title = "Edit Cameras";
+    var instructions = "Add a new camera to the user or delete an existing camera"
     async function drawCamerasEditButton() {
+        changeSubTitleAndInstructions(title, instructions);
         clearcCntainer("mainContainer");
         clearcCntainer("chartContainer");
+        clearcCntainer("buttonContainer");
         drawSpiner();
 
         try {
@@ -15,40 +16,43 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-       
 
-        var container = document.getElementById('mainContainer');
 
-        var button = createAddCameraCard();
-        
-        container.appendChild(button);
+        var mainContainer = document.getElementById('mainContainer');
+
+        var addCameraCard = createAddCameraCard();
+
+        // container.appendChild(addCameraCard);
+        safeAppendElementToContainer(addCameraCard, mainContainer, title);
 
         camerasArr.forEach((camera) => {
-            var button = createDeleteCameraCard(camera);
-            container.appendChild(button);
+            var cameraCard = createDeleteCameraCard(camera);
+            // mainContainer.appendChild(button);
+            safeAppendElementToContainer(cameraCard, mainContainer, title);
 
         });
         deletSpiner();
     }
-    // document.getElementById("editCameras").addEventListener("click", drawCamerasEditButton);
+    document.getElementById("editCameras").addEventListener("click", drawCamerasEditButton);
 
     function createDeleteCameraCard(camera) {
-        var div = document.createElement('div');
-        div.className = "card text-white bg-dark mb-3"
-        div.style = "width: 18rem;"
+        var deleteCameraCard = document.createElement('div');
+        deleteCameraCard.className = "card text-white bg-dark mb-3"
+        deleteCameraCard.style = "width: 18rem;"
+        deleteCameraCard.id = "deleteCameraCard" + camera
 
         var cardHeader = document.createElement('div')
         cardHeader.className = "card-header"
         cardHeader.innerHTML = camera
 
-        div.appendChild(cardHeader)
+        deleteCameraCard.appendChild(cardHeader)
 
 
 
         var cardBody = document.createElement('div')
         cardBody.className = "card-body"
 
-        div.appendChild(cardBody);
+        deleteCameraCard.appendChild(cardBody);
 
 
         var form = document.createElement('form')
@@ -87,27 +91,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-        return div;
+        return deleteCameraCard;
 
     }
 
     function createAddCameraCard() {
-        var div = document.createElement('div');
-        div.className = "card text-white bg-dark mb-3"
-        div.style = "width: 18rem;"
+        var addCameraCard = document.createElement('div');
+        addCameraCard.className = "card text-white bg-dark mb-3"
+        addCameraCard.style = "width: 18rem;"
+        addCameraCard.id = "addCameraCard"
 
         var cardHeader = document.createElement('div')
-        cardHeader.className = "card-header"
+        cardHeader.className = "card-header bg-primary"
         cardHeader.innerHTML = "Adding a new camera"
 
-        div.appendChild(cardHeader)
+        addCameraCard.appendChild(cardHeader)
 
 
 
         var cardBody = document.createElement('div')
         cardBody.className = "card-body"
 
-        div.appendChild(cardBody);
+        addCameraCard.appendChild(cardBody);
 
 
         var form = document.createElement('form')
@@ -118,17 +123,21 @@ document.addEventListener("DOMContentLoaded", () => {
         var input = document.createElement('input')
         input.id = "camera"
         input.placeholder = "Enter camera ID"
-        input.className = "form-text text-muted";
-        input.autocomplete = "username"
+        // input.className = "form-text text-muted";
+        input.className = "form-control rounded-pill bg-dark text-light";
+        input.style = "opacity:0.6;"
+        // input.autocomplete = "username"
         input.required = true;
         form.appendChild(input);
 
         var input = document.createElement('input')
         input.id = "pass"
         input.placeholder = "Enter password"
-        input.className = "form-text text-muted"
+        // input.className = "form-text text-muted"
+        input.className = "form-control rounded-pill bg-dark text-light";
+        input.style = "opacity:0.6;"
         input.type = "password"
-        input.autocomplete = "current-password"
+        // input.autocomplete = "current-password"
         input.required = true;
         form.appendChild(input);
 
@@ -137,8 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
         button.type = 'submit';
         button.value = "Add camera";
         button.className = "form-control"
+        var div = document.createElement('div');
+        div.appendChild(button);
+        div.className = "pt-3";
 
-        form.appendChild(button);
+
+
+        form.appendChild(div);
 
         var cardText = document.createElement('p');
         cardText.className = "card-text"
@@ -174,8 +188,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         cardBody.appendChild(cardText);
-        return div;
+        return addCameraCard;
 
     }
 
-// })
+})

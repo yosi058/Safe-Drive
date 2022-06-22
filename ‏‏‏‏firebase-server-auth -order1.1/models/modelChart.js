@@ -1,26 +1,24 @@
 const parserDB = require('./modelParserDB');
+var labelEvents = {"yawning":parseInt(0), "phone":parseInt(1) ,"eyes":parseInt(2)}
 
+//The function prepares the object "chart" that will prepare the pie graph (graph of a single travel)
 async function viewOnOneTravel(camera, info) {
+    var text = "";
     var id = info.numberOfTravel;
-    // let response = await DbServer.getTravels(camera, id)
-    // console.log(response);
-    console.log("camera ", camera)
-    console.log("id ", id)
     ret = await parserDB.numberOfEventsInTravel(camera, id);
-    console.log(ret)
 
+    //for debug
     console.log("ret[0]:" + ret[0])
     console.log("ret[1]:" + ret[1])
     console.log("ret[2]:" + ret[2])
 
-    var text ="";
-    if((ret[0] != 0 || ret[0] != 0||ret[0] != 0)){
-    text = "All events that occurred while traveling in the 'pie' graph"
+    //If no travel events occurred
+    if ((ret[labelEvents["yawning"]] != 0 || ret[labelEvents["phone"]] != 0 || ret[labelEvents["eyes"]] != 0)) {
+        text = "All events that occurred while traveling in the 'pie' graph"
     }
-    else{
+    else {
         text = "splendid! There were no events on this travel!"
     }
-
 
     return myJson = {
 
@@ -28,11 +26,10 @@ async function viewOnOneTravel(camera, info) {
         data: {
             labels: ['fell asleep', 'distractions', 'Tiredness indications'],
             datasets: [{
-                label: 'Population',
                 data: [
-                    ret[0],
-                    ret[1],
-                    ret[2]
+                    ret[labelEvents["yawning"]],
+                    ret[ labelEvents["phone"]],
+                    ret[labelEvents["eyes"]]
                 ],
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.6)',
@@ -44,62 +41,60 @@ async function viewOnOneTravel(camera, info) {
                 hoverBorderWidth: 3,
                 hoverBorderColor: '#000'
             }]
-          
+
         },
         options: {
             plugins: {
-            title: {
-                display: true,
-                text: text,
-                font: {
-                    size: 25
+                title: {
+                    display: true,
+                    text: text,
+                    font: {
+                        size: 25
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                    }
                 },
-                padding: {
-                    top: 10,
-                    bottom: 10,
+                subtitle: {
+                    display: true,
+                    text: 'The travel start at ' + info.time + '  in "' + info.locations + '"',
+                    font: {
+                        size: 20
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                    }
                 }
             },
-            subtitle: {
-                display: true,
-                text: 'The travel start at '+ info.time + '  in "'+ info.locations +'"',
-                font: {
-                    size: 20
-                },
-                padding: {
-                    top: 10,
-                    bottom: 10,
-                }
-            }
-        },
         }
     }
 }
 
+
+//The function prepares the object "chart" that will prepare the bar graph (graph of a sum travel)
 async function viewOnAmountTravels(camera, arrId) {
-    ret = await parserDB.numberOfEventsInAmountOfTravels(camera, arrId, true);
-    console.log("ret")
-    console.log(ret)
     let red = [];
     let yellow = [];
     let orange = [];
     let black = [];
     labels = []
 
+    ret = await parserDB.numberOfEventsInAmountOfTravels(camera, arrId, true);
+    //Creating the labels
     arrId.forEach(element => {
-       labels.push("travel: " + element)
+        labels.push("travel: " + element)
     });
-    
 
+    //Create a color arr that matches the input size
     ret.forEach(element => {
         red.push('#8b0000');
         yellow.push('#f0e68c');
         orange.push('#ff8c00');
         black.push('rgba(0, 0, 0, 1)');
     });
-    red.push('#8b0000');
-    yellow.push('#f0e68c');
-    orange.push('#ff8c00');
-    black.push('rgba(0, 0, 0, 1)');
+
 
     return myChart = {
         type: 'bar',
@@ -126,27 +121,18 @@ async function viewOnAmountTravels(camera, arrId) {
             }]
         },
         options: {
-            scales: {
-                // yAxes: [{
-                //     ticks: { beginAtZero: true },
-                //     stacked: true
-                // }],
-                // xAxes: [{
-                //     stacked: true
-                // }]
-            },
             plugins: {
                 title: {
                     display: true,
                     text: 'Travel comparison in ' + camera,
                     font: {
-                        size: 25
+                        size: 35
                     },
                     padding: {
-                        top: 50,
-                        bottom: 50,
+                        top: 25,
+                        bottom: 25,
                         font: {
-                            size: 50
+                            size: 25
                         }
                     }
                 }
@@ -155,14 +141,17 @@ async function viewOnAmountTravels(camera, arrId) {
     };
 }
 
+
+//The function prepares the object "chart" that will prepare the time graph (graph of a single travel)
 async function chartTravelsOnTimes(camera, Id) {
     console.log("start of chart TravelsOnTimes");
     var time = await parserDB.createArrOfTimeAndStatus(camera, Id)
     console.log(time);
 
-    var dataPointsPhone = time[1];
-    var dataPointsEye = time[2];
-    var dataPointsyawning = time[0];
+    var dataPointsyawning = time[labelEvents["yawning"]];
+    var dataPointsPhone = time[labelEvents["phone"]];
+    var dataPointsEye = time[labelEvents["eyes"]];
+  
 
     var colorEye = Array(dataPointsPhone.length).fill('rgba(255, 26, 104, 0.2)');
     var colorPhone = Array(dataPointsEye.length).fill('rgba(36, 36, 36, 1)');
@@ -191,11 +180,13 @@ async function chartTravelsOnTimes(camera, Id) {
         }
         ]
     }
-    ;
+        ;
     var ret = { "data": data };
     return ret;
 }
 
+
+//for test
 async function main() {
     viewOnAmountTravels("camera_7", [1, 2, 3, 4])
 }

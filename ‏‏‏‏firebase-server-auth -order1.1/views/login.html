@@ -18,7 +18,7 @@
 }
 </style>
 
-  <title>Drive Safe login</title>
+  <title>Safe Drive login</title>
   <link rel="icon" href="car_logo.png" type="image/x-icon">
 </head>
 
@@ -26,7 +26,7 @@
   <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
     <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
       <img src="car_logo.png" class="logo" id="logo" alt="Italian Trulli" width="70" height="70">
-      Drive Safe</a>
+      Safe Drive</a>
     <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
     
   </nav>
@@ -39,7 +39,7 @@
           <div class="row gx-lg-5 align-items-center">
             <div class="col-lg-6 mb-5 mb-lg-0">
               <h1 class="my-3 display-3 fw-bold ls-tight">
-                Drive Safe <br />
+                Safe Drive <br />
                 <span class="text-primary">Login</span>
               </h1>
               <p style="color: hsl(217, 10%, 50.8%)">
@@ -193,7 +193,8 @@
               .catch(err => {
                 console.log(2)
                 console.log(err.message)
-                document.getElementById("err").innerHTML = err.message;
+                alert("The password is invalid or there is no user record corresponding to this identifier")
+                // document.getElementById("err").innerHTML = err.message;
                 console.log("")
                 // Catch and display errors
               });

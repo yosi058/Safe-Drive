@@ -1,9 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-
+    var title = "Export To Exel";
+    var instructions = "Export information about a single travel or several together"
     async function drawAllCamerasButton() {
+        changeSubTitleAndInstructions(title, instructions);
         clearcCntainer("mainContainer");
         clearcCntainer("chartContainer");
+        clearcCntainer("buttonContainer");
         drawSpiner();
 
         try {
@@ -13,20 +16,21 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(err.message);
             return;
         }
-        var container = document.getElementById('mainContainer');
+        var mainContainer = document.getElementById('mainContainer');
 
         deletSpiner();
 
 
         camerasArr.forEach((camera) => {
 
-            var button = createCameraCard(camera);
-            button.addEventListener("click", () => {
+            var cameraCard = createCameraCard(camera);
+            cameraCard.addEventListener("click", () => {
                 drawAllTittleTravelsButton(camera);
             })
 
 
-            container.appendChild(button);
+            // mainContainer.appendChild(cameraCard);
+            safeAppendElementToContainer(cameraCard, mainContainer, title);
         });
 
     }
@@ -107,24 +111,30 @@ document.addEventListener("DOMContentLoaded", () => {
         var buttonsArr = []
 
         var scrollDiv = document.createElement('div');
-        scrollDiv.setAttribute("class", "overflow-auto p-3 mb-3 mb-md-0 me-md-3 bg-light")
-        scrollDiv.setAttribute("style", "max-height: 500px;")
+        scrollDiv.setAttribute("class", "border border-primary rounded overflow-auto p-3 mb-3 mb-md-0 me-md-3")
+        scrollDiv.setAttribute("style", "max-height: 500px")
         // var scrollDiv = document.createElement('form');
         // scrollDiv.className = "form-group"
 
-        tittleTravelsArr.forEach((tittleTravel) => {
-            console.log(tittleTravel)
-            console.log(tittleTravel["numberOfTravel"])
-            var travelId = tittleTravel["numberOfTravel"]
-            var travelTime = tittleTravel["time"];
+        tittleTravelsArr.forEach((infoTravel) => {
+            console.log(infoTravel)
+            console.log(infoTravel["numberOfTravel"])
+            var travelId = infoTravel["numberOfTravel"]
+            var travelTime = infoTravel["time"];
+            var travelLocations = infoTravel["locations"];
             travelIdArr.push(travelId)
 
             var button = document.createElement('input');
             button.type = 'button';
             button.id = 'submit';
-            button.value = "travel: " + travelTime;
+            button.value = "travel: " + travelTime + " " + travelLocations;
             // button.className = 'btn';
             button.className = "btn btn-outline-success dropdown-toggle";
+            button.setAttribute("style", "width: 500px;border-color: white; border-bottom: solid; border-bottom-width: thin;")
+            button.className = "btn btn-outline-primary dropdown-toggle rounded-0";
+            button.setAttribute("data-toggle", "dropdown");
+            button.setAttribute("aria-haspopup", "true");
+            button.setAttribute("aria-expanded", "false");
 
             button.onclick = (async function () {
                 drawSpiner();
@@ -135,32 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     var body = JSON.stringify({ cameraId: camera, travelId: travelId });
                     var fileName = `${camera}Travel${travelId}`
                     var res = await downloadPostRequest("/jsonToCsv/saveOneTravelToCsv", body, fileName);
-
-
-                    // fetch("/jsonToCsv/saveOneTravelToCsv", {
-                    //     method: "POST",
-                    //     headers: {
-                    //         Accept: "application/json",
-                    //         "Content-Type": "application/json",
-                    //         "CSRF-Token": Cookies.get("XSRF-TOKEN"),
-                    //     },
-                    //     body: body,
-                    // })
-                    //     .then((res) => {
-                    //         console.log(res)
-                    //         return res.blob();
-                    //     })
-                    //     .then((data) => {
-                    //         var a = document.createElement("a");
-                    //         a.href = window.URL.createObjectURL(data);
-                    //         console.log(data)
-                    //         a.download = `${camera}Travel${travelId}`;
-                    //         a.click();
-                    //     });
-
-                    // console.log(travelsArr);
-
-
 
                 } catch (err) {
                     console.log(err.message);
@@ -174,7 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // checkbox.name = `checkbox ${camera}`;
             checkbox.name = `checkboxTravels`;
             checkbox.value = travelId;
-
+            checkbox.className = "form-check-input me-2"
+            // checkbox.value = tittleTravel;
 
 
 
@@ -210,12 +195,14 @@ document.addEventListener("DOMContentLoaded", () => {
         container.appendChild(div)
 
 
-        var sbmitCheckbox = document.createElement('input');
-        sbmitCheckbox.type = 'button';
-        sbmitCheckbox.className = "btn btn-primary";
-        sbmitCheckbox.id = "sbmitCheckbox";
-        sbmitCheckbox.value = "Compare all travels";
-        sbmitCheckbox.addEventListener("click", async (event) => {
+
+        var backToAllCamerasButton = createButtonInDiv("BackToAllCameras", "Back to all cameras"
+            , drawAllCamerasButton);
+
+        safeAppendElementToContainer(backToAllCamerasButton, buttonContainer, title);
+
+
+        async function compareAllTravelsFunc() {
             drawSpiner();
             var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]');
             var values = [];
@@ -235,20 +222,49 @@ document.addEventListener("DOMContentLoaded", () => {
             var res = await downloadPostRequest("/jsonToCsv/saveAllTravelToCsv", body, fileName);
 
             deletSpiner();
-        })
+        }
+
+        var exporAllTravelsButton = createButtonInDiv("exporAllTravelsButton", "Export all travels"
+            , compareAllTravelsFunc);
+
+        safeAppendElementToContainer(exporAllTravelsButton, buttonContainer, title);
+
+        // var compareAllTravelsButton = document.createElement('input');
+        // compareAllTravelsButton.type = 'button';
+        // compareAllTravelsButton.className = "btn btn-primary";
+        // compareAllTravelsButton.id = "compareAllTravels";
+        // compareAllTravelsButton.value = "Compare all travels";
+        // compareAllTravelsButton.addEventListener("click", async (event) => {
+        //     drawSpiner();
+        //     var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]');
+        //     var values = [];
+        //     console.log("values", values)
+        //     checkboxes.forEach((checkbox) => {
+        //         values.push(checkbox.value);
+        //     });
+        //     if (values.length <= 0) {
+        //         alert("There is no travels for this camera");
+        //         return;
+        //     }
+        //     var cameraId = camera;
+        //     var travelArrId = values;
+
+        //     var body = JSON.stringify({ cameraId: camera, travelArrId: travelArrId });
+        //     var fileName = `${camera}allTravelS`;
+        //     var res = await downloadPostRequest("/jsonToCsv/saveAllTravelToCsv", body, fileName);
+
+        //     deletSpiner();
+        // })
 
 
-        var div = document.createElement('div');
-        div.appendChild(sbmitCheckbox);
-        container.appendChild(div);
+        // var div = document.createElement('div');
+        // div.appendChild(compareAllTravelsButton);
+        // container.appendChild(div);
 
         // ///////////////////////////////////////////////////////////////
-        var sbmitCheckbox = document.createElement('input');
-        sbmitCheckbox.type = 'button';
-        sbmitCheckbox.className = "btn btn-primary";
-        sbmitCheckbox.id = "sbmitCheckbox";
-        sbmitCheckbox.value = "Compare marked travels";
-        sbmitCheckbox.addEventListener("click", async (event) => {
+
+
+        async function compareMarkedTravelsFunc() {
             drawSpiner();
             var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
             var values = [];
@@ -258,22 +274,56 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             if (values.length <= 0) {
                 alert("You need to mark the traves you want to compare");
+                deletSpiner();
                 return;
             }
 
             var cameraId = camera;
             var travelArrId = values;
-            // await drawCompareMarkedTravels(cameraId, traveslId);
-            // var res = await postRequestToServer("/jsonToCsv/saveAllTravelToCsv", JSON.stringify({ cameraId: cameraId, travelArrId: travelArrId }));
             var body = JSON.stringify({ cameraId: camera, travelArrId: travelArrId });
             var fileName = `${camera}allTravelS`;
             var res = await downloadPostRequest("/jsonToCsv/saveAllTravelToCsv", body, fileName);
             deletSpiner();
-        })
+        }
 
-        var div = document.createElement('div');
-        div.appendChild(sbmitCheckbox);
-        container.appendChild(div);
+        var exporMarkedTravelsButton = createButtonInDiv("exporMarkedTravelsButton", "Export marked travels"
+            , compareMarkedTravelsFunc);
+
+        safeAppendElementToContainer(exporMarkedTravelsButton, buttonContainer, title);
+
+
+
+        // var sbmitCheckbox = document.createElement('input');
+        // sbmitCheckbox.type = 'button';
+        // sbmitCheckbox.className = "btn btn-primary";
+        // sbmitCheckbox.id = "sbmitCheckbox";
+        // sbmitCheckbox.value = "Compare marked travels";
+        // sbmitCheckbox.addEventListener("click", async (event) => {
+        //     drawSpiner();
+        //     var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
+        //     var values = [];
+        //     console.log("values", values)
+        //     checkboxes.forEach((checkbox) => {
+        //         values.push(checkbox.value);
+        //     });
+        //     if (values.length <= 0) {
+        //         alert("You need to mark the traves you want to compare");
+        //         return;
+        //     }
+
+        //     var cameraId = camera;
+        //     var travelArrId = values;
+        //     // await drawCompareMarkedTravels(cameraId, traveslId);
+        //     // var res = await postRequestToServer("/jsonToCsv/saveAllTravelToCsv", JSON.stringify({ cameraId: cameraId, travelArrId: travelArrId }));
+        //     var body = JSON.stringify({ cameraId: camera, travelArrId: travelArrId });
+        //     var fileName = `${camera}allTravelS`;
+        //     var res = await downloadPostRequest("/jsonToCsv/saveAllTravelToCsv", body, fileName);
+        //     deletSpiner();
+        // })
+
+        // var div = document.createElement('div');
+        // div.appendChild(sbmitCheckbox);
+        // container.appendChild(div);
 
         // ///////////////////////////////////////////////////////////////
 
@@ -281,25 +331,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         // ///////////////////////////////////////////////////////////////
-
-
-        var sbmitCheckbox = document.createElement('input');
-        sbmitCheckbox.type = 'button';
-        sbmitCheckbox.className = "btn btn-primary";
-        sbmitCheckbox.id = "sbmitCheckbox";
-        sbmitCheckbox.value = "Show the worst travel";
-
-
-
-        var div = document.createElement('div');
-        div.appendChild(sbmitCheckbox);
-        container.appendChild(div);
-
 
         var worstTravelbutton = await drawTravelScore(buttonsArr, camera, travelIdArr);
-        sbmitCheckbox.addEventListener("click", async (event) => {
+        async function ExportTheWorstTravelFunc() {
             worstTravelbutton.onclick();
-        });
+        }
+
+        var ExportTheWorstTravelButton = createButtonInDiv("ExportTheWorstTravelButton", "Export the worst travel"
+            , ExportTheWorstTravelFunc, "danger");
+
+        safeAppendElementToContainer(ExportTheWorstTravelButton, buttonContainer, title);
+
+
+        // var sbmitCheckbox = document.createElement('input');
+        // sbmitCheckbox.type = 'button';
+        // sbmitCheckbox.className = "btn btn-primary";
+        // sbmitCheckbox.id = "sbmitCheckbox";
+        // sbmitCheckbox.value = "Show the worst travel";
+
+
+
+        // var div = document.createElement('div');
+        // div.appendChild(sbmitCheckbox);
+        // container.appendChild(div);
+
+
+        // var worstTravelbutton = await drawTravelScore(buttonsArr, camera, travelIdArr);
+        // sbmitCheckbox.addEventListener("click", async (event) => {
+        //     worstTravelbutton.onclick();
+        // });
     }
 
     async function drawTravelScore(buttonsArr, camera, travelIdArr) {

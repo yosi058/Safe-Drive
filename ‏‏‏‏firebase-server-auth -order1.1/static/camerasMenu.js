@@ -1,6 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
+    var title = "Cameras Menu"
+    var instructions = "Select a camera and compare travels"
     async function drawAllCamerasButton() {
-        
+
+        changeSubTitleAndInstructions(title, instructions)
+
+
         clearcCntainer("mainContainer");
         clearcCntainer("chartContainer");
         clearcCntainer("buttonContainer");
@@ -13,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(err.message);
             return;
         }
-        var container = document.getElementById('mainContainer');
+        var mainContainer = document.getElementById('mainContainer');
 
         deletSpiner();
 
@@ -21,10 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         camerasArr.forEach((camera) => {
             var onclickFunck = (function () { return drawAllTittleTravelsButton(camera) });
-            var button = createCameraCard(camera, onclickFunck);
+            var cameraCard = createCameraCard(camera, onclickFunck);
 
 
-            container.appendChild(button);
+            safeAppendElementToContainer(cameraCard, mainContainer, title);
         });
 
     }
@@ -33,6 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     async function drawAllTittleTravelsButton(camera) {
+        var title = "Cameras Menu " + camera
+        var instructions = "See information about a single travel or compare several together"
+
+        changeSubTitleAndInstructions(title, instructions)
         clearcCntainer("mainContainer");
         clearcCntainer("chartContainer");
         drawSpiner();
@@ -43,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-        console.log(camera)
+       
         try {
             var tittleTravelsArr = await postRequestToServer("/dbServer/getTittleTravels", JSON.stringify({ cameraId: camera }));
             console.log(tittleTravelsArr);
@@ -183,6 +192,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
         deletSpiner();
+        // ///////////////////////////////////////////////////////////////
+
+
+       
+
+        // var compareAllButton = document.createElement('input');
+        // compareAllButton.type = 'button';
+        // compareAllButton.className = "btn btn-primary";
+        // compareAllButton.id = "BackToAllCameras";
+        // compareAllButton.value = "Back to all cameras";
+        // compareAllButton.innerHTML = "Back to all cameras";
+        // compareAllButton.addEventListener("click", async (event) => {
+        //     await drawAllCamerasButton();
+        // });
+
+
+
+        // var div = document.createElement('div');
+        // div.appendChild(compareAllButton);
+        // div.className = "p-2"
+
+        // div.id = "BackToCamerasMenueDiv"
+        // // buttonContainer.appendChild(div);
+        var backToAllCamerasButton = createButtonInDiv("BackToAllCameras", "Back to all cameras"
+        , drawAllCamerasButton, "primary");
+
+        safeAppendElementToContainer(backToAllCamerasButton, buttonContainer, title);
+
+
+
+        // ///////////////////////////////////////////////////////////////
+
         // clearcCntainer("buttonContainer");
         var div = document.createElement("div")
         // div.className= "overflow-auto"
@@ -191,15 +232,16 @@ document.addEventListener("DOMContentLoaded", () => {
         mainContainer.appendChild(div);
 
 
-        var compareAllButton = document.createElement('input');
-        compareAllButton.type = 'button';
-        compareAllButton.className = "btn btn-primary";
-        compareAllButton.id = "compareAllButton";
-        compareAllButton.value = "Compare all travels";
-        compareAllButton.addEventListener("click", async (event) => {
+        // var compareAllButton = document.createElement('input');
+        // compareAllButton.type = 'button';
+        // compareAllButton.className = "btn btn-primary";
+        // compareAllButton.id = "compareAllButton";
+        // compareAllButton.value = "Compare all travels";
+
+        async function compareAllFunc() {
             var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]');
             var values = [];
-            console.log("values", values)
+
             checkboxes.forEach((checkbox) => {
                 values.push(checkbox.value);
             });
@@ -210,24 +252,41 @@ document.addEventListener("DOMContentLoaded", () => {
             var cameraId = camera;
             var traveslId = values;
             await drawCompareMarkedTravels(cameraId, traveslId);
-        })
+
+        }
+
+        var compareAllButton = createButtonInDiv("compareAllButton", "Compare all travels"
+            , compareAllFunc, "primary");
+
+        // compareAllButton.addEventListener("click", async (event) => {
+        //     var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]');
+        //     var values = [];
+        //     console.log("values", values)
+        //     checkboxes.forEach((checkbox) => {
+        //         values.push(checkbox.value);
+        //     });
+        //     if (values.length <= 0) {
+        //         alert("There is no travels for this camera");
+        //         return;
+        //     }
+        //     var cameraId = camera;
+        //     var traveslId = values;
+        //     await drawCompareMarkedTravels(cameraId, traveslId);
+        // })
 
 
-        var div = document.createElement('div');
-        div.className="p-2"
-        div.appendChild(compareAllButton);
-        buttonContainer.appendChild(div);
+        // var div = document.createElement('div');
+        // div.className = "p-2"
+        // div.appendChild(compareAllButton);
+        // div.id = "compareAllButtonDiv"
+        // // buttonContainer.appendChild(div);
+        safeAppendElementToContainer(compareAllButton, buttonContainer, title);
 
         // ///////////////////////////////////////////////////////////////
-        var compareMarkedButton = document.createElement('input');
-        compareMarkedButton.type = 'button';
-        compareMarkedButton.className = "btn btn-primary";
-        compareMarkedButton.id = "compareMarkedButton";
-        compareMarkedButton.value = "Compare marked travels";
-        compareMarkedButton.addEventListener("click", async (event) => {
-            let checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
-            let values = [];
-            console.log("values", values)
+        async function compareMarkedFunc() {
+            var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
+            var values = [];
+
             checkboxes.forEach((checkbox) => {
                 values.push(checkbox.value);
             });
@@ -235,89 +294,127 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("You need to mark the traves you want to compare");
                 return;
             }
-
             var cameraId = camera;
             var traveslId = values;
             await drawCompareMarkedTravels(cameraId, traveslId);
-        })
+        }
 
-        var div = document.createElement('div');
-        div.appendChild(compareMarkedButton);
-        div.className="p-2"
-        buttonContainer.appendChild(div);
+        var compareMarkedButton = createButtonInDiv("compareMarkedButton", "Compare marked travels"
+            , compareMarkedFunc, "primary");
+        // var compareMarkedButton = document.createElement('input');
+        // compareMarkedButton.type = 'button';
+        // compareMarkedButton.className = "btn btn-primary";
+        // compareMarkedButton.id = "compareMarkedButton";
+        // compareMarkedButton.value = "Compare marked travels";
+        // compareMarkedButton.addEventListener("click", async (event) => {
+        //     var checkboxes = document.querySelectorAll('input[name="checkboxTravels"]:checked');
+        //     var values = [];
+        //     console.log("values", values)
+        //     checkboxes.forEach((checkbox) => {
+        //         values.push(checkbox.value);
+        //     });
+        //     if (values.length <= 0) {
+        //         alert("You need to mark the traves you want to compare");
+        //         return;
+        //     }
+
+        //     var cameraId = camera;
+        //     var traveslId = values;
+        //     await drawCompareMarkedTravels(cameraId, traveslId);
+        // })
+
+        // var div = document.createElement('div');
+        // div.appendChild(compareMarkedButton);
+        // div.className = "p-2"
+        // div.id = "compareMarkedButtonDiv"
+        // // buttonContainer.appendChild(div);
+        safeAppendElementToContainer(compareMarkedButton, buttonContainer, title);
 
         // ///////////////////////////////////////////////////////////////
 
 
-        var compareMarkedButton = document.createElement('input');
-        compareMarkedButton.type = 'button';
-        compareMarkedButton.className = "btn btn-primary";
-        compareMarkedButton.id = "BackToCamerasMenue";
-        compareMarkedButton.value = "Back to all cameras";
-        compareMarkedButton.addEventListener("click", async (event) => {
-            await drawAllCamerasButton();
-        })
+
+        var sendEmailHref = document.createElement('a');
+        sendEmailHref.setAttribute("href", `/sendEmail?val=${camera}`)
+        sendEmailHref.setAttribute("value", "send email")
+        sendEmailHref.innerHTML = "send email"
+        sendEmailHref.className = "btn btn-primary"
 
         var div = document.createElement('div');
-        div.appendChild(compareMarkedButton);
-        div.className="p-2"
-        buttonContainer.appendChild(div);
+        div.appendChild(sendEmailHref);
+        div.className = "p-2"
 
-
-
-        // ///////////////////////////////////////////////////////////////
-
-        var myHref = document.createElement('a');
-        myHref.setAttribute("href", `/sendEmail?val=${camera}`)
-        myHref.setAttribute("value", "send email")
-        myHref.innerHTML = "send email"
-        myHref.className = "btn btn-primary"
-
-        var div = document.createElement('div');
-        div.appendChild(myHref);
-        div.className="p-2"
-        buttonContainer.appendChild(div);
-
+        div.id = "sendEmailDiv"
+        // buttonContainer.appendChild(div);
+        safeAppendElementToContainer(div, buttonContainer, title);
 
         // ///////////////////////////////////////////////////////////////
 
         var worstTravelDiv = await drawTravelScore(buttonsArr, camera, travelIdArr);
 
-        var worstTravelPieButton = document.createElement('input');
-        worstTravelPieButton.type = 'button';
-        worstTravelPieButton.className = "btn btn-primary";
-        worstTravelPieButton.value = "Draw the worst travel Pie";
-        worstTravelPieButton.id = "DrawTheWorstTravelPie";
-
-
-
-        var div = document.createElement('div');
-        div.className="p-2"
-        div.appendChild(worstTravelPieButton);
-        buttonContainer.appendChild(div);
-
-
-
-        worstTravelPieButton.addEventListener("click", async (event) => {
+        async function worstTravelPieFunc() {
             var a = worstTravelDiv.querySelectorAll('a')
-            console.log(a[0]);
             a[0].onclick()
+
+        }
+
+        var worstTravelPieButton = createButtonInDiv("worstTravelPieButton", "Draw the worst travel Pie"
+            , worstTravelPieFunc, "danger");
+
+        // var worstTravelPieButton = document.createElement('input');
+        // worstTravelPieButton.type = 'button';
+        // worstTravelPieButton.className = "btn btn-danger";
+        // worstTravelPieButton.value = "Draw the worst travel Pie";
+        // worstTravelPieButton.id = "DrawTheWorstTravelPie";
+
+
+
+        // var div = document.createElement('div');
+        // div.className = "p-2"
+        // div.appendChild(worstTravelPieButton);
+        // // buttonContainer.appendChild(div);
+
+        // div.id = "worstTravelPieButtonDiv"
+        // // buttonContainer.appendChild(div);
+
+
+
+
+        safeAppendElementToContainer(worstTravelPieButton, buttonContainer, title);
+
+
+        // worstTravelPieButton.addEventListener("click", async (event) => {
+        //     var a = worstTravelDiv.querySelectorAll('a')
+        //     console.log(a[0]);
+        //     a[0].onclick()
+        //     console.log(worstTravelDiv.querySelectorAll('a'))
+        // });
+
+        async function worstTravelOnTimeFunc() {
+            var a = worstTravelDiv.querySelectorAll('a')
+            console.log(a[1]);
+            a[1].onclick()
             console.log(worstTravelDiv.querySelectorAll('a'))
-        });
+        }
+
+        var worstTravelOnTimeButton = createButtonInDiv("worstTravelOnTimeButton", "Draw the worst travel On Time"
+            , worstTravelOnTimeFunc, "danger");
+
+        // var worstTravelOnTimeButton = document.createElement('input');
+        // worstTravelOnTimeButton.type = 'button';
+        // worstTravelOnTimeButton.className = "btn btn-danger";
+        // worstTravelOnTimeButton.value = "Draw the worst travel On Time";
+        // worstTravelOnTimeButton.id = "worstTravelOnTimeButton";
 
 
-        var worstTravelOnTimeButton = document.createElement('input');
-        worstTravelOnTimeButton.type = 'button';
-        worstTravelOnTimeButton.className = "btn btn-primary";
-        worstTravelOnTimeButton.value = "Draw the worst travel On Time";
-        worstTravelOnTimeButton.value = "worstTravelOnTimeButton";
 
+        // var div = document.createElement('div');
+        // div.className = "p-2"
+        // div.appendChild(worstTravelOnTimeButton);
 
-
-        var div = document.createElement('div');
-        div.className = "p-2"
-        div.appendChild(worstTravelOnTimeButton);
-        buttonContainer.appendChild(div);
+        // div.id = "worstTravelOnTimeButtonDiv"
+        // // buttonContainer.appendChild(div);
+        safeAppendElementToContainer(worstTravelOnTimeButton, buttonContainer, title);
 
 
 
@@ -331,6 +428,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     }
+    // function createButtonInDiv(buttonId, buttonText, onclickFunck, color = "primary") {
+
+    //     var button = createButton(buttonId, buttonText, onclickFunck, color);
+
+    //     var div = document.createElement('div');
+    //     div.appendChild(button);
+    //     div.className = "p-2"
+    //     div.id = buttonId + "Div";
+
+    //     return div;
+
+    // }
+    // function createButton(buttonId, buttonText, onclickFunck, color = "primary") {
+    //     var button = document.createElement('input');
+    //     button.type = 'button';
+    //     button.className = "rounded-pill btn btn-" + color;
+    //     button.id = buttonId;
+    //     button.value = buttonText;
+    //     // button.innerHTML = buttonText;
+
+    //     button.onclick = onclickFunck;
+
+
+
+    //     // buttonContainer.appendChild(div);
+    //     // safeAppendElementToContainer(div, buttonContainer, title);
+    //     return button;
+    // }
 
 
     async function drawTravelScore(buttonsArr, camera, travelIdArr) {
@@ -355,45 +480,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    function createCameraCard(name, onclickFunck) {
-        var div = document.createElement('div');
-        div.className = "card text-white bg-dark mb-3"
-        div.style = "width: 18rem;"
-        div.id = name
+    function createCameraCard(cameraId, onclickFunck) {
+        var cameraCard = document.createElement('div');
+        cameraCard.className = "card text-white bg-dark mb-3"
+        cameraCard.style = "width: 18rem;"
+        cameraCard.id = "cameraCard" + cameraId;
 
         var cardHeader = document.createElement('div')
         cardHeader.className = "card-header"
-        cardHeader.innerHTML = name
+        cardHeader.innerHTML = cameraId
 
-        div.appendChild(cardHeader)
+        cameraCard.appendChild(cardHeader)
 
 
 
         var cardBody = document.createElement('div')
         cardBody.className = "card-body"
 
-        div.appendChild(cardBody);
+        cameraCard.appendChild(cardBody);
 
 
         var cardText = document.createElement('p');
         cardText.className = "card-text"
-        cardText.id = `card-text ${name}`
+        cardText.id = `card-text ${cameraId}`
+
+        var button = createButton("b_" + cameraId, "Show travels", onclickFunck)
+        // var button = document.createElement('input');
+        // button.type = 'button';
+        // button.id = 'submit';
+        // button.value = "Show travels";
 
 
-        var button = document.createElement('input');
-        button.type = 'button';
-        button.id = 'submit';
-        button.value = "Show travels";
+        // button.className = 'btn btn-primary';
 
 
-        button.className = 'btn btn-primary';
-
-
-        button.onclick = onclickFunck;
+        // button.onclick = onclickFunck;
 
         cardBody.appendChild(button);
         cardBody.appendChild(cardText);
-        return div;
+        return cameraCard;
 
     }
 
