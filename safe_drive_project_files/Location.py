@@ -4,6 +4,5 @@ class LocationInfo:
         self.long = None
         self.location = None
         self.counter = 0
-        # self.stop = False
 
 

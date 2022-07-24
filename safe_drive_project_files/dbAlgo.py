@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 # db_name = "cameras"
 db_name = "travels"
-ID = "camera_99"
+ID = "camera_33"
 url = "mongodb+srv://any:1111@safe.bgpte.mongodb.net/safe?retryWrites=true&w=majority"
 password = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 mail = "ori.kohen123@gmail.com"
@@ -39,7 +39,7 @@ class Db:
         item = {
             "_id": ID,
             "phone": 13,
-            "eyes": 6,
+            "eyes": 3,
             "yawning": 50,
             "yawningAlert": True,
             "pass": password,

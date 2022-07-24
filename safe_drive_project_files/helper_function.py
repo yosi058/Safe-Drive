@@ -68,3 +68,4 @@ def cal_yawn(shape):
     return (abs(shape[49, 1] - shape[59, 1]) + abs(shape[61, 1] - shape[67, 1]) + abs(shape[62, 0] - shape[66, 0])
             + abs(shape[63, 0] - shape[65, 0]) + abs(shape[53, 0] - shape[55, 0])) / abs(
         shape[48, 0] - shape[54, 0])
+
