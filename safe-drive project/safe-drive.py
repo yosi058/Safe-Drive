@@ -21,7 +21,7 @@ ctx = ssl.create_default_context(cafile=certifi.where())
 geopy.geocoders.options.default_ssl_context = ctx
 location_data = LocationInfo()
 
-
+# run as a task for the threadpool every time to sample the cur location and update.
 def get_location():
     global stop_drive
     p = sp.Popen(PSHELLCOMM, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.STDOUT, text=True)
@@ -48,12 +48,12 @@ def get_location():
 
             else:
                 location_data.counter += 1
-                if location_data.counter >= 4:
+                if location_data.counter >= FOUR:
                     stop_drive = False
     except:
         return None
 
-
+# return the real address of the location
 def parse_location(location):
     if location is None:
         return None
@@ -63,7 +63,7 @@ def parse_location(location):
     full_addr = ','.join(str(i) for i in full_addr)
     return full_addr
 
-
+#create the db
 def create_db(start):
     try:
         db = Db(location=start)
@@ -72,7 +72,7 @@ def create_db(start):
         return None
 
 
-# Initialize dlib's face detector (HOG-based) and then create the facial landmark predictor.
+# send the cur location
 def send_location():
     if location_data is None or location_data.location is None:
         return None
@@ -90,80 +90,85 @@ class DetectDriver:
         self.predictor = dlib.shape_predictor(SHAPE_PREDICTOR)
         self.count = self.count_yawn = self.count_sleep = self.count_left_side = 0
         self.draw_on_image = True
-
+    # run the threadpool with the tasks
     def find_location(self):
         self.executor.submit(get_location)
-
+    # detect profile and phone use when you use phone or look the side long rime
     def detect_phone_use(self, box_left):
         if len(box_left) != 0:
             self.count_left_side += 1
             if self.count_left_side >= self.count_fame_conf_phone:
                 winsound.Beep(FREQUENCY, DURATION)
                 speak(volume=1, text=TXT_PHONE)
-                self.data_base.async_send(1, ALERT_PHONE, location=send_location())
+                self.data_base.async_send(STATUS_PHONE, ALERT_PHONE, location=send_location())
                 self.count_left_side = 0
-        elif self.count_left_side > 1:
-            self.count_left_side -= 2
+        elif self.count_left_side > ONE:
+            self.count_left_side -= TWO
 
+    # draw a rectangle over the profile
     def draw_profile(self, image, box_left):
         if self.draw_on_image:
             for (x, y, w, h) in box_left:
-                cv2.rectangle(image, (x, y), (int(w), int(h)), DRAW_REC, 1)
+                cv2.rectangle(image, (x, y), (int(w), int(h)), DRAW_REC, ONE)
 
+    # detect sleeping and DROWSY and yawn
     def detect_eyes(self, gray, rects, image):
         for (i, rect) in enumerate(rects):
             shape = self.predictor(gray, rect)
             shape = face_utils.shape_to_np(shape)
-            eye_closed = (cal_left_eye(shape) + cal_right_eye(shape)) / 2
+            eye_closed = (cal_left_eye(shape) + cal_right_eye(shape)) / TWO
             yawn = cal_yawn(shape)
             (x, y, w, h) = face_utils.rect_to_bb(rect)
             self.detect_yawn(yawn)
             if eye_closed >= EYE_OPEN:
                 self.count = self.count_sleep = 0
             elif EYE_OPEN > eye_closed > CLOSED_EYE:
-                if self.count >= 10:
+                if self.count >= TEN:
                     self.count += 1
                     winsound.Beep(FREQUENCY, DURATION)
-                    speak(volume=0.5, text=TXT_DROWSY)
+                    speak(text=TXT_DROWSY)
             else:
                 self.count_sleep += 1
                 if self.count_sleep >= self.count_fame_conf_sleep:
                     self.count_sleep = 0
                     winsound.Beep(FREQUENCY, DURATION)
                     speak(volume=1, text=TXT_SLEEP)
-                    self.data_base.async_send(0, ALERT_SLEEP, location=send_location())
+                    self.data_base.async_send(STATUS_SLEEP, ALERT_SLEEP, location=send_location())
             if self.draw_on_image:
-                cv2.putText(image, f"eye_closed - {eye_closed}", (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75,
-                            DRAW_TEXT, 2)
-                cv2.rectangle(image, (x, y), (x + w, y + h), DRAW_REC, 1)
+                cv2.putText(image, PUT_TXT+f" {eye_closed}", (x - TEN, y - TEN), cv2.FONT_HERSHEY_SIMPLEX, THREE_QUARTER,
+                            DRAW_TEXT, TWO)
+                cv2.rectangle(image, (x, y), (x + w, y + h), DRAW_REC, ONE)
             for (x, y) in shape:
-                cv2.circle(image, (x, y), 1, DRAW_CICRLE, -1)
-
+                cv2.circle(image, (x, y), ONE, DRAW_CICRLE, -ONE)
+    # detect yawn according the ask fro the client to alert or not
     def detect_yawn(self, yawn):
-        if yawn >= 0.8:
+        if yawn >= YAWN:
             self.count_yawn += 1
         if self.count_yawn >= self.count_fame_conf_yawn:
             if self.alert_yawn:
                 winsound.Beep(FREQUENCY, DURATION)
                 speak(volume=1, text=TXT_YAWN)
             self.count_yawn = 0
-            self.data_base.async_send(2, "yawn", location=send_location())
-
-    # Determine the facial landmarks for the face region, then convert the facial landmark (x, y)- coordinates to a NumPy array. Convert dlib's rectangle to a OpenCV-style bounding box [i.e., (x, y, w, h)], then draw the face bounding box. Loop over the (x, y)-coordinates for the facial landmarks and draw them on the image. Show the output image with the face detections + facial landmarks
+            self.data_base.async_send(STATUS_YAWN, ALERT_YAWN, location=send_location())
+    """
+    The main loop - run and each time take the frame and try to 
+    detect eye sleeping of phone use.
+    also if the client staring to get sleepy alert them.
+    """
     def run_detection(self):
         vid = cv2.VideoCapture(INSIDE_CAMERA)
         while True:
             ret, image = vid.read()
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            rects = self.detector(gray, 1)
+            rects = self.detector(gray, ONE)
             box_left, _ = detect(gray, self.profile_cascade)
             self.find_location()
             if not stop_drive:
                 self.detect_phone_use(box_left)
                 self.draw_profile(image, box_left)
                 self.detect_eyes(gray, rects, image)
-            cv2.imshow("Frame", image)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.imshow(HEAD_LINE, image)
+            if cv2.waitKey(ONE) & 0xFF == QUIT:
                 break
         vid.release()
         cv2.destroyAllWindows()
