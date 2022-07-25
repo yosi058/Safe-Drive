@@ -51,3 +51,4 @@ EIGHT = 8
 NINE = 9
 TEN=10
 THREE_QUARTER =0.75
+NONE_LOCATION= "אין מיקום תקין"

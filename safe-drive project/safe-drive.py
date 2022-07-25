@@ -56,7 +56,7 @@ def get_location():
 # return the real address of the location
 def parse_location(location):
     if location is None:
-        return None
+        return NONE_LOCATION
     address = location.raw['address']
     full_addr = [address.get('highway', address.get('road')), address.get('suburb', address.get('neighbourhood'))
         , address.get('town'), address.get('country', '')]
@@ -75,7 +75,7 @@ def create_db(start):
 # send the cur location
 def send_location():
     if location_data is None or location_data.location is None:
-        return None
+        return NONE_LOCATION
     return location_data.location[0]
 
 
