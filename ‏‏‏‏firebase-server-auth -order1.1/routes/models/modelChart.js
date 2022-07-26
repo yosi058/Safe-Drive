@@ -1,5 +1,30 @@
 const parserDB = require('./modelParserDB');
-var labelEvents = {"yawning":parseInt(0), "phone":parseInt(1) ,"eyes":parseInt(2)}
+
+const labelEvents = {"yawning":parseInt(0), "phone":parseInt(1) ,"eyes":parseInt(2)}
+const empty = 0;
+const titlePie = "All events that occurred while traveling in the 'pie' graph";
+const noEvents = "splendid! There were no events on this travel!";
+const pieGraph = "pie"
+const barGraph = "bar"
+const labelsGraph =  ['fell asleep', 'distractions', 'Tiredness indications'];
+const pieColor =    ['rgba(255, 99, 132, 0.6)','rgba(54, 162, 235, 0.6)','rgba(255, 206, 86, 0.6)']
+const blackColor  = "#777";
+const whiteColor = "#000";
+const borderWidth = 1;
+const hoverBorderWidth = 3;
+const fontSizePie = 25;
+const subtitlePie = 20;
+const fontSizeBar = 35;
+const SizeBar = 25;
+const sizeTen = 10;
+const travelTitle = "travel: ";
+const redColor = "#8b0000";
+const yellowColor = '#f0e68c';
+const orangeColor =  '#ff8c00';
+const colorEyeTimeGraph = 'rgba(255, 26, 104, 0.2)';
+const colorPhoneTimeGraph ='rgba(36, 36, 36, 1)';
+const coloryawningTimeGraph ='rgba(11, 156, 49, 1)';
+
 
 //The function prepares the object "chart" that will prepare the pie graph (graph of a single travel)
 async function viewOnOneTravel(camera, info) {
@@ -13,33 +38,31 @@ async function viewOnOneTravel(camera, info) {
     console.log("ret[2]:" + ret[2])
 
     //If no travel events occurred
-    if ((ret[labelEvents["yawning"]] != 0 || ret[labelEvents["phone"]] != 0 || ret[labelEvents["eyes"]] != 0)) {
-        text = "All events that occurred while traveling in the 'pie' graph"
+    if ((ret[labelEvents.yawning] != empty || ret[labelEvents.phone] != empty || ret[labelEvents.eyes] != empty)) {
+        text = titlePie;
     }
     else {
-        text = "splendid! There were no events on this travel!"
+        text = noEvents;
     }
 
     return myJson = {
 
-        type: 'pie', // bar, horizontalBar, pie, line, doughnut, radar, polarArea
+        type: pieGraph, // bar, horizontalBar, pie, line, doughnut, radar, polarArea
         data: {
-            labels: ['fell asleep', 'distractions', 'Tiredness indications'],
+            labels: labelsGraph,
             datasets: [{
                 data: [
-                    ret[labelEvents["yawning"]],
-                    ret[ labelEvents["phone"]],
-                    ret[labelEvents["eyes"]]
+                    ret[labelEvents.yawning],
+                    ret[ labelEvents.phone],
+                    ret[labelEvents.eyes]
                 ],
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)'
+                    pieColor[labelEvents.yawning],pieColor[labelEvents.phone],pieColor[labelEvents.eyes]
                 ],
-                borderWidth: 1,
-                borderColor: '#777',
-                hoverBorderWidth: 3,
-                hoverBorderColor: '#000'
+                borderWidth: borderWidth,
+                borderColor: blackColor,
+                hoverBorderWidth: hoverBorderWidth,
+                hoverBorderColor: whiteColor
             }]
 
         },
@@ -49,22 +72,22 @@ async function viewOnOneTravel(camera, info) {
                     display: true,
                     text: text,
                     font: {
-                        size: 25
+                        size: fontSizePie
                     },
                     padding: {
-                        top: 10,
-                        bottom: 10,
+                        top: sizeTen,
+                        bottom: sizeTen,
                     }
                 },
                 subtitle: {
                     display: true,
-                    text: 'The travel start at ' + info.time + '  in "' + info.locations + '"',
+                    text: `The travel start at ${info.time} in "${info.locations}"`,
                     font: {
-                        size: 20
+                        size: subtitlePie
                     },
                     padding: {
-                        top: 10,
-                        bottom: 10,
+                        top: sizeTen,
+                        bottom: sizeTen,
                     }
                 }
             },
@@ -84,55 +107,55 @@ async function viewOnAmountTravels(camera, arrId) {
     ret = await parserDB.numberOfEventsInAmountOfTravels(camera, arrId, true);
     //Creating the labels
     arrId.forEach(element => {
-        labels.push("travel: " + element)
+        labels.push(travelTitle + element)
     });
 
     //Create a color arr that matches the input size
     ret.forEach(element => {
-        red.push('#8b0000');
-        yellow.push('#f0e68c');
-        orange.push('#ff8c00');
-        black.push('rgba(0, 0, 0, 1)');
+        red.push(redColor);
+        yellow.push(yellowColor);
+        orange.push(orangeColor);
+        black.push(blackColor);
     });
 
 
     return myChart = {
-        type: 'bar',
+        type: barGraph,
         data: {
             labels: labels,
             datasets: [{
-                label: 'Tiredness indications',
-                data: ret[2],
+                label: labelsGraph[labelEvents.eyes],
+                data: ret[labelEvents.eyes],
                 backgroundColor: yellow,
                 borderColor: black,
-                borderWidth: 1
+                borderWidth: borderWidth
             }, {
-                label: 'distractions',
-                data: ret[1],
+                label: labelsGraph[labelEvents.phone],
+                data: ret[labelEvents.phone],
                 backgroundColor: orange,
                 borderColor: black,
-                borderWidth: 1
+                borderWidth: borderWidth
             }, {
-                label: 'fell asleep',
-                data: ret[0],
+                label: labelsGraph[labelEvents.yawning],
+                data: ret[labelEvents.yawning],
                 backgroundColor: red,
                 borderColor: black,
-                borderWidth: 1
+                borderWidth: borderWidth
             }]
         },
         options: {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Travel comparison in ' + camera,
+                    text: `Travel comparison in ${camera}`,
                     font: {
-                        size: 35
+                        size: fontSizeBar
                     },
                     padding: {
-                        top: 25,
-                        bottom: 25,
+                        top: SizeBar,
+                        bottom: SizeBar,
                         font: {
-                            size: 25
+                            size: SizeBar
                         }
                     }
                 }
@@ -144,35 +167,34 @@ async function viewOnAmountTravels(camera, arrId) {
 
 //The function prepares the object "chart" that will prepare the time graph (graph of a single travel)
 async function chartTravelsOnTimes(camera, Id) {
-    console.log("start of chart TravelsOnTimes");
     var time = await parserDB.createArrOfTimeAndStatus(camera, Id)
     console.log(time);
 
-    var dataPointsyawning = time[labelEvents["yawning"]];
-    var dataPointsPhone = time[labelEvents["phone"]];
-    var dataPointsEye = time[labelEvents["eyes"]];
+    var dataPointsyawning = time[labelEvents.yawning];
+    var dataPointsPhone = time[labelEvents.phone];
+    var dataPointsEye = time[labelEvents.eyes];
   
 
-    var colorEye = Array(dataPointsPhone.length).fill('rgba(255, 26, 104, 0.2)');
-    var colorPhone = Array(dataPointsEye.length).fill('rgba(36, 36, 36, 1)');
-    var coloryawning = Array(dataPointsyawning.length).fill('rgba(11, 156, 49, 1)');
+    var colorEye = Array(dataPointsPhone.length).fill(colorEyeTimeGraph);
+    var colorPhone = Array(dataPointsEye.length).fill(colorPhoneTimeGraph);
+    var coloryawning = Array(dataPointsyawning.length).fill(coloryawningTimeGraph);
 
     const data = {
         datasets: [{
-            label: 'fell asleep ',
+            label: labelsGraph[labelEvents.yawning],
             data: dataPointsPhone,
             backgroundColor: colorEye,
             borderColor: colorEye,
             showLine: false
 
         }, {
-            label: 'distractions',
+            label: labelsGraph[labelEvents.phone],
             data: dataPointsEye,
             backgroundColor: colorPhone,
             borderColor: colorPhone,
             showLine: false
         }, {
-            label: 'Tiredness indications',
+            label: labelsGraph[labelEvents.eyes],
             data: dataPointsyawning,
             backgroundColor: coloryawning,
             borderColor: coloryawning,
@@ -181,14 +203,14 @@ async function chartTravelsOnTimes(camera, Id) {
         ]
     }
         ;
-    var ret = { "data": data };
+    var ret = { data: data };
     return ret;
 }
 
 
 //for test
 async function main() {
-    viewOnAmountTravels("camera_7", [1, 2, 3, 4])
+    //viewOnAmountTravels("camera_7", [1, 2, 3, 4])
 }
 // main();
 

@@ -1,9 +1,16 @@
 const mongoose = require('mongoose');
 var sha256 = require('js-sha256');
-var travelsConn = null
-var userConn = null
+var travelsConn = null;
+var userConn = null;
 
-var cache = {}
+const cache = {};
+const url ='mongodb+srv://any:1111@safe.bgpte.mongodb.net/';
+const saftyConnection = '?retryWrites=true&w=majority';
+const travelsDB ="travels";
+const travle_number = "travle_number_";
+const usersDB = "users";
+const userDB = "user";
+const ConfigurationsDB = 'Configurations';
 
 //  the schemas
 ////////////////////////////////////
@@ -44,7 +51,7 @@ const cameraConf = new schema({
 async function connectToDb(dbName) {
 //Save  in cache
     if (cache[dbName] == undefined) {
-        let DatabaseTravelsInfoURL = 'mongodb+srv://any:1111@safe.bgpte.mongodb.net/' + dbName + '?retryWrites=true&w=majority'
+        let DatabaseTravelsInfoURL = url + dbName + saftyConnection;
         cache[dbName] = await mongoose.createConnection(DatabaseTravelsInfoURL, {
             useNewUrlParser: true,
             useUnifiedTopology: true
@@ -63,15 +70,15 @@ async function connectToDb(dbName) {
 async function getTittleTravels(userName) {
     let travelsResults = []
     if (travelsConn == null) {
-        travelsConn = await connectToDb("travels")
+        travelsConn = await connectToDb(travelsDB)
     }
     let Travel = travelsConn.model(userName, travelsScema)
     let myTravels = await Travel.find()
         .then((result) => {
             result.forEach((item) => {
-                var time = item["time"]
-                var numberOfTravel = item["numberOfTravel"]
-                var locations = item["locations"]
+                let time = item.time
+                let numberOfTravel = item.numberOfTravel
+                let locations = item.locations
                 travelsResults.push({ time, numberOfTravel, locations })
             });
         })
@@ -85,14 +92,14 @@ async function getTravels(dbName, id, connInfoTravels = null) {
     if (connInfoTravels == null) {
         connInfoTravels = await connectToDb(dbName)
     }
-    let Travel1 = connInfoTravels.model('travle_number_' + id, travelsDataScema)
-    let myTravelsinfo = await Travel1.find()
+    let Travel = connInfoTravels.model(travle_number + id, travelsDataScema)
+    let myTravelsinfo = await Travel.find()
         .then((result) => {
             result.forEach((item) => {
-                var time = item["time"]
-                var massage = item["massage"]
-                var status = item["status"]
-                var locations = item["locations"]
+                let time = item.time;
+                let massage = item.massage;
+                let status = item.status;
+                let locations = item.locations;
                 info.push({ time, massage, status, locations })
             });
         })
@@ -103,10 +110,10 @@ async function getTravels(dbName, id, connInfoTravels = null) {
 async function signUp(mail, camerasArr = []) {
     let user;
     if (userConn == null) {
-        userConn = await connectToDb("users")
+        userConn = await connectToDb(usersDB)
     }
-    user = userConn.model('User', userSchema);
-    var newUser = new user({
+    user = userConn.model(userDB, userSchema);
+    let newUser = new user({
         _id: mail,
         cameras: camerasArr
     });
@@ -116,57 +123,27 @@ async function signUp(mail, camerasArr = []) {
 //The function changes the configurations of a specific camera
 async function setConf(camera, eyes, phone, yawning, yawningAlert, mail = null) {
     let camereConn = await connectToDb(camera);
-    let confi = await camereConn.model('Configurations', cameraConf);
+    let confi = await camereConn.model(ConfigurationsDB, cameraConf);
 
     if (eyes != null) {
         confi.findOneAndUpdate({ _id: camera }, { eyes: eyes }, { upsert: true }, function (err, doc) {
-            if (err) {
-                console.log("error", err)
-            }
-            else {
-                console.log("work")
-            }
         });
     }
 
     if (phone != null) {
         confi.findOneAndUpdate({ _id: camera }, { phone: phone }, { upsert: true }, function (err, doc) {
-            if (err) {
-                console.log("error", err)
-            }
-            else {
-                console.log("work")
-            }
         });
     }
     if (yawning != null) {
         confi.findOneAndUpdate({ _id: camera }, { yawning: yawning }, { upsert: true }, function (err, doc) {
-            if (err) {
-                console.log("error", err)
-            }
-            else {
-                console.log("work")
-            }
         });
     }
     if (yawningAlert != null) {
         confi.findOneAndUpdate({ _id: camera }, { yawningAlert: yawningAlert }, { upsert: true }, function (err, doc) {
-            if (err) {
-                console.log("error", err)
-            }
-            else {
-                console.log("work")
-            }
         });
     }
     if (mail != null) {
         confi.findOneAndUpdate({ _id: camera }, { mail: mail }, { upsert: true }, function (err, doc) {
-            if (err) {
-                console.log("error", err)
-            }
-            else {
-                console.log("work")
-            }
         });
     }
 }
@@ -189,9 +166,9 @@ async function updateCamera(mail, camera, pass) {
     }
     
     if (userConn == null) {
-        userConn = await connectToDb("users")
+        userConn = await connectToDb(usersDB)
     }
-    user = await userConn.model('User', userSchema);
+    user = await userConn.model(userDB, userSchema);
 
     await user.findOneAndUpdate({
         _id: mail
@@ -208,9 +185,9 @@ async function updateCamera(mail, camera, pass) {
 async function deleteCamera(mail, camerasArr) {
     let user;
     if (userConn == null) {
-        userConn = await connectToDb("users")
+        userConn = await connectToDb(usersDB)
     }
-    user = await userConn.model('User', userSchema);
+    user = await userConn.model(userDB, userSchema);
 
     await user.findOneAndUpdate({
         _id: mail
@@ -229,10 +206,10 @@ async function getCamerasOfUser(mail) {
     let user;
 
     if (userConn == null) {
-        userConn = await connectToDb("users")
+        userConn = await connectToDb(usersDB)
     }
     try {
-        user = await userConn.model('User', userSchema)
+        user = await userConn.model(userDB, userSchema)
     }
     catch (error) {
         console.log(error)
@@ -240,7 +217,7 @@ async function getCamerasOfUser(mail) {
     }
     let cameras = await user.findById(mail)
         .then((result) => {
-            info = (result["cameras"])
+            info = (result.cameras)
         }).catch((err) => {
             console.log(err)
         });
@@ -250,7 +227,6 @@ async function getCamerasOfUser(mail) {
 
 //The function returns travel data from the camera
 async function getAllDataOnCamera(nameOfCamera, arrTravelsId = null) {
-    console.log("in getAllDataOnCamera ")
 
     //Create an array with all the existing travel numbers on the camera
     let travelsData = []
@@ -258,7 +234,7 @@ async function getAllDataOnCamera(nameOfCamera, arrTravelsId = null) {
         arrTravelsId = [];
         var travels = await getTittleTravels(nameOfCamera).then((trav) => {
             trav.forEach((item) => {
-                arrTravelsId.push(item["numberOfTravel"])
+                arrTravelsId.push(item.numberOfTravel)
             });
         });
     }
@@ -284,8 +260,8 @@ async function getAllDataOnAmountOfCameras(nameOfCameraArr) {
 
 //The function initializes and saves all the necessary connections in each access to the site
 async function init() {
-    travelsConn = await connectToDb("travels")
-    userConn = await connectToDb("users")
+    travelsConn = await connectToDb(travelsDB)
+    userConn = await connectToDb(usersDB)
 
 }
 
@@ -294,15 +270,15 @@ async function getConf(camera) {
     let info = {};
     let connect = await connectToDb(camera);
 
-    let conf = await connect.model('configurations', cameraConf)
+    let conf = await connect.model(ConfigurationsDB, cameraConf)
     let confInfo = await conf.find()
         .then((item) => {
             item = item[0];
             info.phone = item.phone;
-            info.eyes = item["eyes"];
-            info.yawning = item["yawning"];
-            info.yawningAlert = item["yawningAlert"];
-            info.mail = item["mail"]
+            info.eyes = item.eyes;
+            info.yawning = item.yawning;
+            info.yawningAlert = item.yawningAlert;
+            info.mail = item.mail;
         })
     return info
 }
@@ -313,15 +289,13 @@ async function checkPass(camera, pass) {
     let connect = await connectToDb(camera);
     let isCorrect = false;
 
-    let conf = await connect.model('configurations', cameraConf)
+    let conf = await connect.model(ConfigurationsDB, cameraConf)
     let confInfo = await conf.find()
         .then((item) => {
             if (item[0].pass == sha256(pass)) {
-                console.log("correct password");
                 isCorrect = true;
             }
             else {
-                console.log("worng password!")
                 isCorrect = false;
             }
         })
@@ -333,7 +307,7 @@ async function getMail(camera) {
     let mail = "";
     let connect = await connectToDb(camera);
 
-    let conf = await connect.model('configurations', cameraConf)
+    let conf = await connect.model(ConfigurationsDB, cameraConf)
     let confInfo = await conf.find()
         .then((item) => {
             item = item[0];
@@ -345,15 +319,9 @@ async function getMail(camera) {
 //The function changes the email associated with the camera
 async function setMail(camera, mail) {
     let camereConn = await connectToDb(camera);
-    let confi = await camereConn.model('Configurations', cameraConf);
+    let confi = await camereConn.model(ConfigurationsDB, cameraConf);
 
     confi.findOneAndUpdate({ _id: camera }, { mail: mail }, { upsert: true }, function (err, doc) {
-        if (err) {
-            console.log("error", err)
-        }
-        else {
-            console.log("work")
-        }
     });
 }
 
@@ -388,14 +356,14 @@ async function main() {
     //console.log(await getCamerasOfUser("ori123@gmail"))
 
 
-    //console.log(await setConf("camera_"+ i,null ,null ,null , null, "ori.kohen123@gmail.com"))
+    console.log(await setConf("camera_22",5 ,5 ,5 , 5, "ori.kohen123@gmail.com"))
 
 
     //console.log( await getConf("camera_1"))
 
     //SetConfOfArrCamera(["camera_4","camera_3"], 2,2,2, true)
     //console.log( await getMail("camera_9"))
-    await setMail("camera_3", "test@test")
+    //await setMail("camera_3", "test@test")
 }
 //main();
 
@@ -412,5 +380,5 @@ module.exports = {
     getConf,
     setConfOfArrCamera,
     getMail,
-    setMail
+    setMail,
 }
