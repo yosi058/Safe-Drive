@@ -1,11 +1,12 @@
+const title = "All events that occurred while traveling on schedule";
+const subTitle = "splendid! There were no events on this travel!";
+const empty = 0;
+
 async function drawTarvelsOnTime(cameraId, infoTravel) {
-    clearcCntainer("chartContainer");
+    clearChartContainer();
     drawSpiner();
     
     var travelId = infoTravel.numberOfTravel;
-    console.log("----------------------------------------------------------------------------------")
-    console.log("info: ",infoTravel);
-    console.log("----------------------------------------------------------------------------------")
     var canvas = document.createElement('canvas');
 
     
@@ -15,10 +16,6 @@ async function drawTarvelsOnTime(cameraId, infoTravel) {
     canvas.id = "myChart";
     container.appendChild(canvas);
 
-    console.log(" start ejs getTarvelsOnTime")
-    // var cam = "camera_7";
-    // var idDriver = 1;
-
     let ret = await postRequestToServer('/queries/travelOnTime', JSON.stringify({ 'camera': cameraId, 'id': travelId }))
     console.log("getTarvelsOnTime", ret)
     var data = ret.data;
@@ -26,15 +23,14 @@ async function drawTarvelsOnTime(cameraId, infoTravel) {
     console.log("data.datasets", data.datasets)
 
     var text ="";
-    if(( data.datasets[0].data != 0 ||data.datasets[1].data != 0 ||data.datasets[2].data != 0))
+    if(( data.datasets[0].data != empty ||data.datasets[1].data != empty ||data.datasets[2].data != empty))
     { 
-    text = "All events that occurred while traveling on schedule";
+    text = title
     }
     else{
-        text = "splendid! There were no events on this travel!";
+        text = subTitle
     }
 
-    // config 
     const config = {
         type: 'line',
         data,
@@ -42,7 +38,6 @@ async function drawTarvelsOnTime(cameraId, infoTravel) {
             plugins: {
                 title: {
                     display: true,
-                    //text: 'The events in ' + cameraId +' in travel that started at ' + infoTravel.time +" on " + infoTravel.locations,
                     text: text,
                     fontFamily: 'Helvetica',
                     font: {
@@ -58,7 +53,6 @@ async function drawTarvelsOnTime(cameraId, infoTravel) {
                 },
                 subtitle: {
                     display: true,
-                    //text: "The travel start at " + infoTravel.time + '  in '+ info.locations +'"',
                     text: 'The travel start at '+ infoTravel.time+ '  in "'+ infoTravel.locations +'"',
                     font: {
                         size: 20

@@ -1,5 +1,15 @@
 const DbServer = require('./modelDbServer');
 
+const mapStatus = {"phone":1, "eyesClosing":0, "yawning":2}
+const oneLine = 1;
+const statusEvent = "status";
+const timeEvent = "time";
+const locationsEvent = "locations";
+const yawningScore =0.4;
+const sleepScore = 2;
+const phoneScore = 1;
+const minVal = -1;
+
 
 //The function returns all events from travel, in the form of an array
 //   arr[ |0:fell asleep|, |1:distractions|, |2:Tiredness indications|]
@@ -18,9 +28,9 @@ async function reshapeArr(events) {
     eyesClosing = [];
     data = []
     events.forEach((arr) => {
-        eyesClosing.push(arr[0]);
-        phone.push(arr[1]);
-        Yawning.push(arr[2]);
+        eyesClosing.push(arr[mapStatus.eyesClosing]);
+        phone.push(arr[mapStatus.phone]);
+        Yawning.push(arr[mapStatus.yawning]);
     });
     data.push(eyesClosing);
     data.push(phone);
@@ -32,11 +42,10 @@ async function reshapeArr(events) {
 //   arr[ |0:fell asleep|, |1:distractions|, |2:Tiredness indications|]
 async function createArrOfIvents(infoTravel) {
     let events = [0, 0, 0];
-    infoTravel=infoTravel.slice(1);
+    infoTravel=infoTravel.slice(oneLine);
     infoTravel.forEach((e) => {
-        events[parseInt(e["status"])] += 1;
+        events[parseInt(e[statusEvent])] += 1;
     });
-    console.log("createArrOfIvents")
     console.log(events);
     return events;
 }
@@ -60,37 +69,31 @@ async function numberOfEventsInAmountOfTravels(camera, arrIdTravels, isReshape=f
 
 //The function creates a score for each travel
 async function parserGetTravelsScore(camera, arrIdTravels) {
-    let yawning = 0.5; //arr[2]
-    let sleep = 2; //arr[0]
-    let phone = 1; //arrr[1]
     evg = [];
-    max = -1;
-    idWorstTravels = -1;
-   arr =await numberOfEventsInAmountOfTravels(camera,arrIdTravels);
-   console.log("arr");
-   arr.forEach((travel, index) => {
-    score = travel[0] * sleep + travel[1] * phone + travel[2] * yawning;   
+    max = minVal;
+    idWorstTravels = minVal;
+    let arr =await numberOfEventsInAmountOfTravels(camera,arrIdTravels);
+    arr.forEach((travel, index) => {
+    let score = travel[mapStatus.eyesClosing] * sleepScore + travel[mapStatus.phone] * phoneScore+ travel[mapStatus.yawning] * yawningScore;   
     evg.push(score);
     if(score > max){
         idWorstTravels = index;
        max= score;
     }
    });
-   ret = {"scoreArr": evg, "worstTravelIndex":idWorstTravels }
+   let ret = {scoreArr: evg, worstTravelIndex :idWorstTravels }
    return ret;
 }
 
 //The function creates an array of time and status for each travel
 async function createArrOfTimeAndStatus(camera, id) {
     var travel = await DbServer.getTravels(camera, id)
-    travel=travel.slice(1);
+    travel=travel.slice(oneLine);
 
-    console.log("travel in createArrOfTimeEvnts ", travel)
     let mapEvents = [[], [], []];
     travel.forEach((e) => {
-        mapEvents[parseInt(e["status"])].push({x: new Date(e["time"]),y: parseInt(e["status"])+1})  
+        mapEvents[parseInt(e[statusEvent])].push({x: new Date(e[timeEvent]), y: parseInt(e[statusEvent]) + 1})  
     });
-    console.log("createArrOfTimeEvnts")
     console.log(mapEvents);
     return mapEvents;
 }
@@ -98,20 +101,19 @@ async function createArrOfTimeAndStatus(camera, id) {
 //The function creates a map with the data on each travel, in the form of an export to a file
 async function numberOfEventsInSumOfTravelsToCsv(camera, arrIdTravels) {
     console.log(" in numberOfEventsInSumOfTravelsToCsv")
-    console.log("camera: ", camera);
-    console.log("arrIdTravels: ", arrIdTravels);
+    console.log( camera);
+    console.log(arrIdTravels);
     let events = [];
     let infoOnTravels = await DbServer.getAllDataOnCamera(camera, arrIdTravels)
     for (travel of infoOnTravels) {
         if(travel.length >0)
         {
-        console.log("travle in numberOfEventsInSumOfTravelsToCsv: ",travel)
         var info = await createArrOfIvents(travel)
-        let sleep = info[0];
-        let phone = info[1];
-        let yawning = info[2];
-        let timeOfTravel = travel[0]["time"];
-        let locations = travel[0]["locations"];
+        let sleep = info[mapStatus.eyesClosing];
+        let phone = info[mapStatus.phone];
+        let yawning = info[mapStatus.yawning];
+        let timeOfTravel = travel[0][timeEvent];
+        let locations = travel[0][locationsEvent];
         events.push({fell_asleep : sleep, distractions : phone, Tiredness_indications : yawning, timeOfTravel : timeOfTravel, locations : locations})
         }
     }
