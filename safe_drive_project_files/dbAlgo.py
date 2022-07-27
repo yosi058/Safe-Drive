@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 # CONST
 TRAVELS_DB_NAME = "travels"
 CONF_DB_NAME = "configurations"
-DB_CAMERA_NAME = "camera_33"
+DB_CAMERA_NAME = "camera_11"
 url = "mongodb+srv://any:1111@safe.bgpte.mongodb.net/safe?retryWrites=true&w=majority"
 PASSWORD = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
 MAIL = "ori.kohen123@gmail.com"

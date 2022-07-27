@@ -121,7 +121,7 @@ class DetectDriver:
             (x, y, w, h) = face_utils.rect_to_bb(rect)
             self.detect_yawn(yawn)
             if eye_closed >= EYE_OPEN:
-                self.count = self.count_sleep = 0
+                self.count = self.count_sleep = RESET
             elif EYE_OPEN > eye_closed > CLOSED_EYE:
                 if self.count >= TEN:
                     self.count += 1
@@ -130,7 +130,7 @@ class DetectDriver:
             else:
                 self.count_sleep += 1
                 if self.count_sleep >= self.count_fame_conf_sleep:
-                    self.count_sleep = 0
+                    self.count_sleep = RESET
                     winsound.Beep(FREQUENCY, DURATION)
                     speak(volume=1, text=TXT_SLEEP)
                     self.data_base.async_send(STATUS_SLEEP, ALERT_SLEEP, location=send_location())
@@ -148,7 +148,7 @@ class DetectDriver:
             if self.alert_yawn:
                 winsound.Beep(FREQUENCY, DURATION)
                 speak(volume=1, text=TXT_YAWN)
-            self.count_yawn = 0
+            self.count_yawn = RESET
             self.data_base.async_send(STATUS_YAWN, ALERT_YAWN, location=send_location())
     """
     The main loop - run and each time take the frame and try to 
@@ -168,7 +168,7 @@ class DetectDriver:
                 self.draw_profile(image, box_left)
                 self.detect_eyes(gray, rects, image)
             cv2.imshow(HEAD_LINE, image)
-            if cv2.waitKey(ONE) & 0xFF == QUIT:
+            if cv2.waitKey(ONE) & EXIT_KEY == QUIT:
                 break
         vid.release()
         cv2.destroyAllWindows()
